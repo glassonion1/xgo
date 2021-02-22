@@ -12,7 +12,7 @@ import (
 )
 
 // Verify verifies the token from given the public key
-func Verify(token string, key *rsa.PublicKey) error {
+func VerifyJWSToken(token string, key *rsa.PublicKey) error {
 	return jws.Verify(token, key)
 }
 

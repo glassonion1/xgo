@@ -1,6 +1,6 @@
-# XGo
+# XGo - Useful golang libraries
 
-![CI for Pull Request](https://github.com/glassonion1/xgo/workflows/CI%20for%20Pull%20Request/badge.svg)
+[![Test CLI](https://github.com/glassonion1/xgo/actions/workflows/test.yml/badge.svg)](https://github.com/glassonion1/xgo/actions/workflows/test.yml)
 [![Godoc](https://img.shields.io/badge/godoc-reference-blue)](https://godoc.org/github.com/glassonion1/xgo)
 [![Go Report Card](https://goreportcard.com/badge/github.com/glassonion1/xgo)](https://goreportcard.com/report/github.com/glassonion1/xgo)
 [![GitHub license](https://img.shields.io/github/license/glassonion1/xgo)](https://github.com/glassonion1/xgo/blob/main/LICENSE)
@@ -16,6 +16,7 @@ XGo contains various useful golang libraries
 ## Install
 ```
 $ go get github.com/glassonion1/xgo
+```
 
 ## Usage
 ### Deep copy

@@ -1,9 +1,11 @@
 package xgo
 
+// Chunk is chunked index that contains from and to
 type Chunk struct {
 	From, To int
 }
 
+// SplitChunks splits chunks from slice length
 func SplitChunks(length int, chunkSize int) <-chan Chunk {
 	if chunkSize == 0 {
 		chunkSize = 1

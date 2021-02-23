@@ -7,6 +7,7 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+// GenGCPAccessToken generates GCP access token from the service account file
 func GenGCPAccessToken(saKeyfile, audience string) (string, error) {
 	sa, err := ioutil.ReadFile(saKeyfile)
 	if err != nil {

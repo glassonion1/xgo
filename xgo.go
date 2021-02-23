@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// IsFirstUpper determines whether the first letter is upper case
 func IsFirstUpper(v string) bool {
 	if len(v) == 0 {
 		return false
@@ -12,6 +13,7 @@ func IsFirstUpper(v string) bool {
 	return strings.HasPrefix(v, strings.ToUpper(string(v[0])))
 }
 
+// IsBlank determines whether the object is blank or sero value
 func IsBlank(value reflect.Value) bool {
 	switch value.Kind() {
 	case reflect.String:

@@ -2,6 +2,7 @@ package xgo
 
 import "reflect"
 
+// StructToMap converts a struct to map
 func StructToMap(data interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 

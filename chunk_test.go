@@ -3,8 +3,9 @@ package xgo_test
 import (
 	"testing"
 
-	"github.com/glassonion1/xgo"
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/glassonion1/xgo"
 )
 
 func TestSplitChunk(t *testing.T) {

@@ -21,7 +21,7 @@ $ go get github.com/glassonion1/xgo
 ## Usage
 ### Deep copy
 ```go
-package main
+package xgo_test
 
 import (
     "fmt"
@@ -44,8 +44,8 @@ type ToModel struct {
     UpdatedAt  *timestamp.Timestamp
 }
 
-func Main() {
-    now := time.Now()
+func Example() {
+    now := time.Date(2020, 6, 1, 0, 0, 0, 0, time.UTC)
     from := FromModel{
         ID: "xxxx",
         Name: "foo",
@@ -58,5 +58,7 @@ func Main() {
         // handles error
     }
     fmt.Printf("prints ToModel object: %v", to)
+    
+    // Output: prints ToModel object: &{xxxx foo seconds:1590969600 seconds:1590969600}
 }
 ```

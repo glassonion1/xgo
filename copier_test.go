@@ -13,124 +13,52 @@ import (
 	"github.com/glassonion1/xgo"
 )
 
-type ModelSample struct {
-	ID         string `copier:"Id"`
-	Order      int64
-	CreatedAt  time.Time
-	UpdatedAt  *time.Time
-	SampleType SampleType
-	Pos        struct {
-		Lat float64
-		Lon float64
-	}
-}
-
-type SampleType int64
-
-const (
-	SampleTypeAllowStandby SampleType = iota + 1
-)
-
-// Protobuf struct
-type PbSample struct {
-	Id         string
-	Order      int64
-	CreatedAt  *timestamp.Timestamp
-	UpdatedAt  *timestamp.Timestamp
-	SampleType Sample_SampleType
-	Pos        *PbPos
-}
-
-type PbPos struct {
-	Lat float64
-	Lon float64
-}
-
-// Protobuf custom type
-type Sample_SampleType int32
-
-const (
-	Sample_ALLOW_STANDBY Sample_SampleType = iota + 1
-)
-
-type FromPtrTestdata struct {
-	StructToStruct ModelA
-	StructToPtr    ModelA
-	PtrToStruct    *ModelA
-	PtrToPtr       *ModelA
-}
-
-type ToPtrTestdata struct {
-	StructToStruct ModelB
-	StructToPtr    *ModelB
-	PtrToStruct    ModelB
-	PtrToPtr       *ModelB
-}
-
-type ModelA struct {
-	Field     string
-	CreatedAt time.Time
-	UpdatedAt *time.Time
-	Model     ModelC
-}
-
-type ModelB struct {
-	Field     string
-	CreatedAt time.Time
-	UpdatedAt *time.Time
-	Model     ModelD
-}
-
-type ModelC struct {
-	Field string
-}
-
-type ModelD struct {
-	Field string
-}
-
-type Int32Field struct {
-	ID int32
-}
-
-type Int64Field struct {
-	ID int64
-}
-
-type TimestampField struct {
-	FinishedAt *timestamp.Timestamp
-}
-
-type TimeField struct {
-	FinishedAt time.Time
-}
-
-type DurationPbField struct {
-	Duration *duration.Duration
-}
-
-type DurationField struct {
-	Duration time.Duration
-}
-
-type StringField struct {
-	Name string
-}
-
-// MyString is custom string type
-type MyString string
-
-type MyStringField struct {
-	Name MyString
-}
-
-type PrivateField struct {
-	ID    string
-	name  string
-	state int
-}
-
 func TestDeepCopy(t *testing.T) {
+
+	type ModelC struct {
+		Field string
+	}
+
+	type ModelD struct {
+		Field string
+	}
+
+	type ModelA struct {
+		Field     string
+		CreatedAt time.Time
+		UpdatedAt *time.Time
+		Model     ModelC
+	}
+
+	type ModelB struct {
+		Field     string
+		CreatedAt time.Time
+		UpdatedAt *time.Time
+		Model     ModelD
+	}
+
+	type Int32Field struct {
+		ID int32
+	}
+
+	type Int64Field struct {
+		ID int64
+	}
+
+	type FromPtrTestdata struct {
+		StructToStruct ModelA
+		StructToPtr    ModelA
+		PtrToStruct    *ModelA
+		PtrToPtr       *ModelA
+	}
+
+	type ToPtrTestdata struct {
+		StructToStruct ModelB
+		StructToPtr    *ModelB
+		PtrToStruct    ModelB
+		PtrToPtr       *ModelB
+	}
+
 	type args struct {
 		src  interface{}
 		dest interface{}
@@ -284,6 +212,16 @@ func TestDeepCopy(t *testing.T) {
 }
 
 func TestDeepCopy_CustomType(t *testing.T) {
+	type StringField struct {
+		Name string
+	}
+
+	type MyString string
+
+	type MyStringField struct {
+		Name MyString
+	}
+
 	type args struct {
 		src  interface{}
 		dest interface{}
@@ -338,6 +276,59 @@ func TestDeepCopy_CustomType(t *testing.T) {
 }
 
 func TestDeepCopy_Protobuf(t *testing.T) {
+
+	// Model type
+	type SampleType int64
+	// Protobuf type
+	type Sample_SampleType int32
+	const (
+		SampleTypeAllowStandby SampleType        = 1
+		Sample_ALLOW_STANDBY   Sample_SampleType = 1
+	)
+
+	type ModelSample struct {
+		ID         string `copier:"Id"`
+		Order      int64
+		CreatedAt  time.Time
+		UpdatedAt  *time.Time
+		SampleType SampleType
+		Pos        struct {
+			Lat float64
+			Lon float64
+		}
+	}
+
+	type PbPos struct {
+		Lat float64
+		Lon float64
+	}
+
+	// Protobuf struct
+	type PbSample struct {
+		Id         string
+		Order      int64
+		CreatedAt  *timestamp.Timestamp
+		UpdatedAt  *timestamp.Timestamp
+		SampleType Sample_SampleType
+		Pos        *PbPos
+	}
+
+	type TimestampField struct {
+		FinishedAt *timestamp.Timestamp
+	}
+
+	type TimeField struct {
+		FinishedAt time.Time
+	}
+
+	type DurationPbField struct {
+		Duration *duration.Duration
+	}
+
+	type DurationField struct {
+		Duration time.Duration
+	}
+
 	type args struct {
 		src  interface{}
 		dest interface{}
@@ -523,6 +514,12 @@ func TestDeepCopy_Protobuf(t *testing.T) {
 }
 
 func TestDeepCopy_Private(t *testing.T) {
+	type PrivateField struct {
+		ID    string
+		name  string
+		state int
+	}
+
 	type args struct {
 		src  PrivateField
 		dest *PrivateField

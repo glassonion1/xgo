@@ -8,12 +8,15 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 )
 
+// It is a common, ordinary struct
 type FromModel struct {
 	ID        string `copier:"Id"`
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt *time.Time
 }
+
+// It is like a protobuf struct on gRPC
 type ToModel struct {
 	Id        string
 	Name      string

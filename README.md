@@ -1,11 +1,11 @@
-# XGo - Useful golang libraries
+# XGo - Useful Go libraries
 
 [![Test CLI](https://github.com/glassonion1/xgo/actions/workflows/test.yml/badge.svg)](https://github.com/glassonion1/xgo/actions/workflows/test.yml)
 [![Godoc](https://img.shields.io/badge/godoc-reference-blue)](https://godoc.org/github.com/glassonion1/xgo)
 [![Go Report Card](https://goreportcard.com/badge/github.com/glassonion1/xgo)](https://goreportcard.com/report/github.com/glassonion1/xgo)
 [![GitHub license](https://img.shields.io/github/license/glassonion1/xgo)](https://github.com/glassonion1/xgo/blob/main/LICENSE)
 
-XGo contains various useful golang libraries
+XGo contains various useful Go libraries
 
 ## Features
 - Deep copy
@@ -32,12 +32,14 @@ import (
     "github.com/glassonion1/xgo"
 )
 
+// It is a common, ordinary struct
 type FromModel struct {
     ID         string `copier:"Id"`
     Name       string
     CreatedAt  time.Time
     UpdatedAt  *time.Time
 }
+// It is like a protobuf struct on gRPC
 type ToModel struct {
     Id         string
     Name       string

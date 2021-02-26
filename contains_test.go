@@ -123,6 +123,32 @@ func TestContains(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "slice of pointer",
+			in: args{
+				list: []*item{
+					&item{
+						ID:   "1",
+						Name: "test1",
+					},
+					&item{
+						ID:   "2",
+						Name: "test2",
+					},
+					&item{
+						ID:   "3",
+						num:  3,
+						Name: "test3",
+					},
+				},
+				elem: &item{
+					ID:   "3",
+					num:  3,
+					Name: "test3",
+				},
+			},
+			want: true,
+		},
+		{
 			name: "int32",
 			in: args{
 				list: []int32{1, 2, 3, 4, 5},

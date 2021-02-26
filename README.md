@@ -51,7 +51,7 @@ func Example() {
     now := time.Date(2020, 6, 1, 0, 0, 0, 0, time.UTC)
     from := FromModel{
         ID: "xxxx",
-        Name: "foo",
+        Name: "R2D2",
         CreatedAt: now,
         UpdatedAt: &now,
     }
@@ -62,11 +62,12 @@ func Example() {
     }
     fmt.Println("ToModel object:", to)
     
-    // Output: ToModel object: &{xxxx foo seconds:1590969600 seconds:1590969600}
+    // Output: ToModel object: &{xxxx R2D2 seconds:1590969600 seconds:1590969600}
 }
 ```
 
 ### Contains
+Contains method for a slice.
 ```go
 // slice of int32
 containsInt32 := xgo.Contains([]int32{1, 2, 3, 4, 5}, 3)
@@ -81,27 +82,27 @@ containsFloat64 := xgo.Contains([]float64{1.1, 2.2, 3.3, 4.4, 5.5}, 4.4)
 fmt.Println("contains float64:", containsFloat64)
 
 // slice of struct
-type item struct {
+type hero struct {
     ID   string
     Name string
 }
-list := []item{
-    item{
+list := []hero{
+    hero{
         ID:   "1",
-        Name: "test1",
+        Name: "Luke Skywalker",
     },
-    item{
+    hero{
         ID:   "2",
-        Name: "test2",
+        Name: "Han Solo",
     },
-    item{
+    hero{
         ID:   "3",
-        Name: "test3",
+        Name: "Leia Organa",
     },
 }
-target := item{
+target := hero{
 	ID:   "2",
-	Name: "test2",
+	Name: "Han Solo",
 }
 containsStruct := xgo.Contains(list, target)
 fmt.Println("contains struct:", containsStruct)

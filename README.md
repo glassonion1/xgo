@@ -81,6 +81,10 @@ fmt.Println("contains int:", containsInt)
 containsFloat64 := xgo.Contains([]float64{1.1, 2.2, 3.3, 4.4, 5.5}, 4.4)
 fmt.Println("contains float64:", containsFloat64)
 
+// slice of string
+containsString := Contains([]string{"r2d2", "c3po", "bb8"}, "c3po")
+fmt.Println(containsString) // -> true
+
 // slice of struct
 type hero struct {
     ID   string

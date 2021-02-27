@@ -167,8 +167,16 @@ func TestContains(t *testing.T) {
 		{
 			name: "float64",
 			in: args{
-				list: []float64{1.1, 2.2, 3.3, 4.4, 55.},
+				list: []float64{1.1, 2.2, 3.3, 4.4, 5.5},
 				elem: 3.3,
+			},
+			want: true,
+		},
+		{
+			name: "string",
+			in: args{
+				list: []string{"apple", "orange", "lemon"},
+				elem: "lemon",
 			},
 			want: true,
 		},

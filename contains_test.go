@@ -33,15 +33,15 @@ func TestContains(t *testing.T) {
 			name: "slice of struct",
 			in: args{
 				list: []item{
-					item{
+					{
 						ID:   "1",
 						Name: "test1",
 					},
-					item{
+					{
 						ID:   "2",
 						Name: "test2",
 					},
-					item{
+					{
 						ID:   "3",
 						num:  3,
 						Name: "test3",
@@ -59,7 +59,7 @@ func TestContains(t *testing.T) {
 			name: "slice of struct 2",
 			in: args{
 				list: []order{
-					order{
+					{
 						ID:        "1",
 						CreatedAt: now,
 						Item: item{
@@ -67,7 +67,7 @@ func TestContains(t *testing.T) {
 							Name: "test1",
 						},
 					},
-					order{
+					{
 						ID:        "2",
 						CreatedAt: now,
 						UpdatedAt: nil,
@@ -92,7 +92,7 @@ func TestContains(t *testing.T) {
 			name: "slice of struct 3",
 			in: args{
 				list: []order{
-					order{
+					{
 						ID:        "1",
 						CreatedAt: now,
 						Item: item{
@@ -100,7 +100,7 @@ func TestContains(t *testing.T) {
 							Name: "test1",
 						},
 					},
-					order{
+					{
 						ID:        "2",
 						CreatedAt: now,
 						UpdatedAt: &now,
@@ -126,15 +126,15 @@ func TestContains(t *testing.T) {
 			name: "slice of pointer",
 			in: args{
 				list: []*item{
-					&item{
+					{
 						ID:   "1",
 						Name: "test1",
 					},
-					&item{
+					{
 						ID:   "2",
 						Name: "test2",
 					},
-					&item{
+					{
 						ID:   "3",
 						num:  3,
 						Name: "test3",

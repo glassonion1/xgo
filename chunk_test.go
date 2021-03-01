@@ -26,15 +26,15 @@ func TestSplitChunk(t *testing.T) {
 				chunkSize: 2,
 			},
 			want: []xgo.Chunk{
-				xgo.Chunk{
+				{
 					From: 0,
 					To:   2,
 				},
-				xgo.Chunk{
+				{
 					From: 2,
 					To:   4,
 				},
-				xgo.Chunk{
+				{
 					From: 4,
 					To:   6,
 				},
@@ -47,15 +47,15 @@ func TestSplitChunk(t *testing.T) {
 				chunkSize: 2,
 			},
 			want: []xgo.Chunk{
-				xgo.Chunk{
+				{
 					From: 0,
 					To:   2,
 				},
-				xgo.Chunk{
+				{
 					From: 2,
 					To:   4,
 				},
-				xgo.Chunk{
+				{
 					From: 4,
 					To:   5,
 				},
@@ -68,19 +68,19 @@ func TestSplitChunk(t *testing.T) {
 				chunkSize: 3,
 			},
 			want: []xgo.Chunk{
-				xgo.Chunk{
+				{
 					From: 0,
 					To:   3,
 				},
-				xgo.Chunk{
+				{
 					From: 3,
 					To:   6,
 				},
-				xgo.Chunk{
+				{
 					From: 6,
 					To:   9,
 				},
-				xgo.Chunk{
+				{
 					From: 9,
 					To:   10,
 				},
@@ -93,7 +93,7 @@ func TestSplitChunk(t *testing.T) {
 				chunkSize: 10,
 			},
 			want: []xgo.Chunk{
-				xgo.Chunk{
+				{
 					From: 0,
 					To:   5,
 				},
@@ -106,15 +106,15 @@ func TestSplitChunk(t *testing.T) {
 				chunkSize: 0,
 			},
 			want: []xgo.Chunk{
-				xgo.Chunk{
+				{
 					From: 0,
 					To:   1,
 				},
-				xgo.Chunk{
+				{
 					From: 1,
 					To:   2,
 				},
-				xgo.Chunk{
+				{
 					From: 2,
 					To:   3,
 				},
@@ -141,9 +141,9 @@ func TestSplitChunk(t *testing.T) {
 	t.Run("tests slice", func(t *testing.T) {
 		list := []int{2, 4, 6, 8, 10, 12, 14, 16}
 		wants := [][]int{
-			[]int{2, 4, 6},
-			[]int{8, 10, 12},
-			[]int{14, 16},
+			{2, 4, 6},
+			{8, 10, 12},
+			{14, 16},
 		}
 		index := 0
 		for chunk := range xgo.SplitChunks(len(list), 3) {

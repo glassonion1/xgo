@@ -61,15 +61,15 @@ func ExampleContains() {
 		Name string
 	}
 	list := []hero{
-		hero{
+		{
 			ID:   "1",
 			Name: "Luke Skywalker",
 		},
-		hero{
+		{
 			ID:   "2",
 			Name: "Han Solo",
 		},
-		hero{
+		{
 			ID:   "3",
 			Name: "Leia Organa",
 		},

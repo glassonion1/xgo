@@ -180,6 +180,14 @@ func TestContains(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "recover panic",
+			in: args{
+				list: []int{1, 2, 3},
+				elem: "str",
+			},
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {

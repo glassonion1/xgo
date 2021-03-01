@@ -4,6 +4,10 @@ import "reflect"
 
 // Contains returns true if an element is present in a slice
 func Contains(list interface{}, elem interface{}) bool {
+	defer func() {
+		recover()
+	}()
+
 	listV := reflect.ValueOf(list)
 
 	if listV.Kind() == reflect.Slice {
@@ -11,6 +15,7 @@ func Contains(list interface{}, elem interface{}) bool {
 			item := listV.Index(i).Interface()
 
 			target := reflect.ValueOf(elem).Convert(reflect.TypeOf(item)).Interface()
+
 			if ok := reflect.DeepEqual(item, target); ok {
 				return true
 			}

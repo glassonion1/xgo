@@ -70,19 +70,19 @@ func Example() {
 Contains method for a slice.
 ```go
 // slice of int32
-containsInt32 := xgo.Contains([]int32{1, 2, 3, 4, 5}, 3)
+containsInt32 := xgo.Contains[int32]([]int32{1, 2, 3, 4, 5}, 3)
 fmt.Println("contains int32:", containsInt32)
 
 // slice of int
-containsInt := xgo.Contains([]int{1, 2, 3, 4, 5}, 2)
+containsInt := xgo.Contains[int]([]int{1, 2, 3, 4, 5}, 2)
 fmt.Println("contains int:", containsInt)
 
 // slice of float64
-containsFloat64 := xgo.Contains([]float64{1.1, 2.2, 3.3, 4.4, 5.5}, 4.4)
+containsFloat64 := xgo.Contains[float64]([]float64{1.1, 2.2, 3.3, 4.4, 5.5}, 4.4)
 fmt.Println("contains float64:", containsFloat64)
 
 // slice of string
-containsString := Contains([]string{"r2d2", "c3po", "bb8"}, "c3po")
+containsString := Contains[string]([]string{"r2d2", "c3po", "bb8"}, "c3po")
 fmt.Println(containsString) // -> true
 
 // slice of struct
@@ -108,7 +108,7 @@ target := hero{
 	ID:   "2",
 	Name: "Han Solo",
 }
-containsStruct := xgo.Contains(list, target)
+containsStruct := xgo.Contains[hero](list, target)
 fmt.Println("contains struct:", containsStruct)
 
 // Output:

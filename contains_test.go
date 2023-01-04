@@ -134,3 +134,131 @@ func TestContains(t *testing.T) {
 		}
 	})
 }
+
+func TestIndexOf(t *testing.T) {
+	t.Run("slice of string test", func(t *testing.T) {
+		t.Parallel()
+		list := []string{"apple", "orange", "lemon"}
+		elem := "lemon"
+		got := xgo.IndexOf[string](list, elem)
+		if got != 2 {
+			t.Errorf("testing %s: faild, this should be 2", t.Name())
+		}
+	})
+	t.Run("slice of int test", func(t *testing.T) {
+		t.Parallel()
+		list := []int{1, 2, 3, 4, 5}
+		elem := 1
+		got := xgo.IndexOf[int](list, elem)
+		if got != 0 {
+			t.Errorf("testing %s: faild, this should be 0", t.Name())
+		}
+	})
+
+	t.Run("slice of float64 test", func(t *testing.T) {
+		t.Parallel()
+		list := []float64{1.1, 2.2, 3.3, 4.4, 5.5}
+		elem := 3.3
+		got := xgo.IndexOf[float64](list, elem)
+		if got != 2 {
+			t.Errorf("testing %s: faild, this should be 2", t.Name())
+		}
+	})
+
+	type item struct {
+		ID   string
+		num  int
+		Name string
+	}
+	t.Run("slice of struct test", func(t *testing.T) {
+		t.Parallel()
+		list := []item{
+			{
+				ID:   "1",
+				Name: "test1",
+			},
+			{
+				ID:   "2",
+				Name: "test2",
+			},
+			{
+				ID:   "3",
+				num:  3,
+				Name: "test3",
+			},
+		}
+		elem := item{
+			ID:   "3",
+			num:  3,
+			Name: "test3",
+		}
+		got := xgo.IndexOf[item](list, elem)
+		if got != 2 {
+			t.Errorf("testing %s: faild, this should be 2", t.Name())
+		}
+		elem2 := item{
+			ID:   "1",
+			num:  2,
+			Name: "test3",
+		}
+		got2 := xgo.IndexOf[item](list, elem2)
+		if got2 != -1 {
+			t.Errorf("testing %s: faild, this should be -1", t.Name())
+		}
+	})
+
+	now := time.Now()
+	type order struct {
+		ID        string
+		CreatedAt time.Time
+		UpdatedAt *time.Time
+		Item      item
+	}
+	t.Run("slice of nested struct test", func(t *testing.T) {
+		t.Parallel()
+		list := []order{
+			{
+				ID:        "1",
+				CreatedAt: now,
+				Item: item{
+					ID:   "1",
+					Name: "test1",
+				},
+			},
+			{
+				ID:        "2",
+				CreatedAt: now,
+				UpdatedAt: nil,
+				Item: item{
+					ID:   "3",
+					Name: "test3",
+				},
+			},
+		}
+		elem := order{
+			ID:        "2",
+			CreatedAt: now,
+			Item: item{
+				ID:   "3",
+				Name: "test3",
+			},
+		}
+		got := xgo.IndexOf[order](list, elem)
+		if got != 1 {
+			t.Errorf("testing %s: faild, this should be 1", t.Name())
+		}
+
+		elem2 := order{
+			ID:        "2",
+			CreatedAt: now,
+			Item: item{
+				ID:   "2",
+				Name: "test2",
+			},
+		}
+		got2 := xgo.IndexOf[order](list, elem2)
+		if got2 != -1{
+			t.Errorf("testing %s: faild, this should be -1", t.Name())
+		}
+	})
+}

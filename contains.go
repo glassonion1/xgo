@@ -11,3 +11,13 @@ func Contains[T any](list []T, elem T) bool {
 	}
 	return false
 }
+
+// IndexOf returns index of slice
+func IndexOf[T any](list []T, elem T) int {
+	for i, item := range list {
+		if ok := reflect.DeepEqual(item, elem); ok {
+			return i
+		}
+	}
+	return -1
+}

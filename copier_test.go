@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/duration"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/glassonion1/xgo"
 )
@@ -307,14 +307,14 @@ func TestDeepCopy_Protobuf(t *testing.T) {
 	type PbSample struct {
 		Id         string
 		Order      int64
-		CreatedAt  *timestamp.Timestamp
-		UpdatedAt  *timestamp.Timestamp
+		CreatedAt  *timestamppb.Timestamp
+		UpdatedAt  *timestamppb.Timestamp
 		SampleType Sample_SampleType
 		Pos        *PbPos
 	}
 
 	type TimestampField struct {
-		FinishedAt *timestamp.Timestamp
+		FinishedAt *timestamppb.Timestamp
 	}
 
 	type TimeField struct {
@@ -322,7 +322,7 @@ func TestDeepCopy_Protobuf(t *testing.T) {
 	}
 
 	type DurationPbField struct {
-		Duration *duration.Duration
+		Duration *durationpb.Duration
 	}
 
 	type DurationField struct {
@@ -364,8 +364,8 @@ func TestDeepCopy_Protobuf(t *testing.T) {
 			want: &PbSample{
 				Id:         "ididididid",
 				Order:      1,
-				CreatedAt:  &timestamp.Timestamp{Seconds: now.Unix(), Nanos: 0},
-				UpdatedAt:  &timestamp.Timestamp{Seconds: now.Unix(), Nanos: 0},
+				CreatedAt:  &timestamppb.Timestamp{Seconds: now.Unix(), Nanos: 0},
+				UpdatedAt:  &timestamppb.Timestamp{Seconds: now.Unix(), Nanos: 0},
 				SampleType: Sample_ALLOW_STANDBY,
 				Pos: &PbPos{
 					Lat: 1234.56,
@@ -396,7 +396,7 @@ func TestDeepCopy_Protobuf(t *testing.T) {
 			want: &PbSample{
 				Id:         "ididididid",
 				Order:      1,
-				CreatedAt:  &timestamp.Timestamp{Seconds: now.Unix(), Nanos: 0},
+				CreatedAt:  &timestamppb.Timestamp{Seconds: now.Unix(), Nanos: 0},
 				UpdatedAt:  nil,
 				SampleType: Sample_ALLOW_STANDBY,
 				Pos: &PbPos{
@@ -412,8 +412,8 @@ func TestDeepCopy_Protobuf(t *testing.T) {
 				src: PbSample{
 					Id:         "ididididid",
 					Order:      1,
-					CreatedAt:  &timestamp.Timestamp{Seconds: now.Unix(), Nanos: 0},
-					UpdatedAt:  &timestamp.Timestamp{Seconds: now.Unix(), Nanos: 0},
+					CreatedAt:  &timestamppb.Timestamp{Seconds: now.Unix(), Nanos: 0},
+					UpdatedAt:  &timestamppb.Timestamp{Seconds: now.Unix(), Nanos: 0},
 					SampleType: Sample_ALLOW_STANDBY,
 					Pos: &PbPos{
 						Lat: 1234.56,
@@ -451,7 +451,7 @@ func TestDeepCopy_Protobuf(t *testing.T) {
 			name: "durationPbField to duration",
 			in: args{
 				src: &DurationPbField{
-					Duration: &duration.Duration{Seconds: 300},
+					Duration: &durationpb.Duration{Seconds: 300},
 				},
 				dest: &DurationField{},
 			},
@@ -465,7 +465,7 @@ func TestDeepCopy_Protobuf(t *testing.T) {
 				dest: &DurationPbField{},
 			},
 			want: &DurationPbField{
-				Duration: &duration.Duration{Seconds: 300},
+				Duration: &durationpb.Duration{Seconds: 300},
 			},
 			err: nil,
 		},
@@ -504,8 +504,8 @@ func TestDeepCopy_Protobuf(t *testing.T) {
 			if tt.err != nil && err != tt.err {
 				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
 			}
-			opt := cmpopts.IgnoreUnexported(timestamp.Timestamp{},
-				duration.Duration{})
+			opt := cmpopts.IgnoreUnexported(timestamppb.Timestamp{},
+				durationpb.Duration{})
 			if diff := cmp.Diff(tt.want, got, opt); diff != "" {
 				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
 			}

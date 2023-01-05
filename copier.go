@@ -6,9 +6,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/duration"
-	"github.com/golang/protobuf/ptypes/timestamp"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // tagCopier is tag for deep copy target
@@ -128,15 +127,15 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 
 	switch t := src.Interface().(type) {
 	case time.Time:
-		// time.Time -> *timestamp.Timestamp or int64
+		// time.Time -> *timestampps.Timestamp or int64
 		switch dst.Interface().(type) {
-		case *timestamp.Timestamp:
+		case *timestamppb.Timestamp:
 			if t.Unix() > 0 {
-				tp, err := ptypes.TimestampProto(t)
-				if err != nil {
+				ts := timestamppb.New(t)
+				if err := ts.CheckValid(); err != nil {
 					return false, err
 				}
-				dst.Set(reflect.ValueOf(tp))
+				dst.Set(reflect.ValueOf(ts))
 			}
 		case int64:
 			dst.Set(reflect.ValueOf(t.Unix()))
@@ -147,83 +146,84 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 			dst.Set(reflect.Zero(dst.Type()))
 			return true, nil
 		}
-		tv := *t
-		// *time.Time -> timestamp.Timestamp or int64
+		// *time.Time -> timestampps.Timestamp or int64
 		switch dst.Interface().(type) {
-		case *timestamp.Timestamp:
-			if tv.Unix() > 0 {
-				tp, err := ptypes.TimestampProto(tv)
-				if err != nil {
+		case *timestamppb.Timestamp:
+			if t.Unix() > 0 {
+				ts := timestamppb.New(*t)
+				if err := ts.CheckValid(); err != nil {
 					return false, err
 				}
-				dst.Set(reflect.ValueOf(tp))
+				dst.Set(reflect.ValueOf(ts))
 			}
 		case int64:
 			dst.Set(reflect.ValueOf(t.Unix()))
 		}
 		return true, nil
-	case *timestamp.Timestamp:
-		// *timestamp.Timestamp -> time.Time
+	case *timestamppb.Timestamp:
+		// *timestamppb.Timestamp -> time.Time
 		switch dst.Interface().(type) {
 		case time.Time:
 			if t.GetSeconds() > 0 {
-				ti, err := ptypes.Timestamp(t)
-				if err != nil {
+				ts := timestamppb.New(t.AsTime())
+				if err := ts.CheckValid(); err != nil {
 					return false, err
 				}
-				dst.Set(reflect.ValueOf(ti))
+				dst.Set(reflect.ValueOf(ts.AsTime()))
 			}
 		case *time.Time:
 			if t.GetSeconds() > 0 {
-				ti, err := ptypes.Timestamp(t)
-				if err != nil {
+				ts := timestamppb.New(t.AsTime())
+				if err := ts.CheckValid(); err != nil {
 					return false, err
 				}
-				dst.Set(reflect.ValueOf(&ti))
+				time := ts.AsTime()
+				dst.Set(reflect.ValueOf(&time))
 			}
 		}
 		return true, nil
 
 	case time.Duration:
-		// time.Duration -> *duration.Duration
+		// time.Duration -> *durationpb.Duration
 		switch dst.Interface().(type) {
-		case *duration.Duration:
+		case *durationpb.Duration:
 			if t.Nanoseconds() > 0 {
-				dst.Set(reflect.ValueOf(ptypes.DurationProto(t)))
+				dst.Set(reflect.ValueOf(durationpb.New(t)))
 			}
 		}
 		return true,
 			nil
-	case *duration.Duration:
-		// *duration.Duration -> time.Duration
+	case *durationpb.Duration:
+		// *durationpb.Duration -> time.Duration
 		switch dst.Interface().(type) {
 		case time.Duration:
 			if t == nil {
 				return false, nil
 			}
-			d, err := ptypes.Duration(t)
-			if err != nil {
+
+			d := durationpb.New(t.AsDuration())
+			if err := d.CheckValid(); err != nil {
 				return false, err
 			}
-			dst.Set(reflect.ValueOf(d))
+			dst.Set(reflect.ValueOf(d.AsDuration()))
 		}
 		return true, nil
 	case int64:
-		// int64 -> time.Time or *timestamp.Timestamp or *duration.Duration
+		// int64 -> time.Time or *timestamppb.Timestamp or *durationpb.Duration
 		switch dst.Interface().(type) {
 		case time.Time:
 			dst.Set(reflect.ValueOf(time.Unix(t, 0)))
-		case *timestamp.Timestamp:
+		case *timestamppb.Timestamp:
 			if t > 0 {
-				tp, err := ptypes.TimestampProto(time.Unix(t, 0))
-				if err != nil {
+				ts := timestamppb.New(time.Unix(t, 0))
+				if err := ts.CheckValid(); err != nil {
 					return false, err
 				}
-				dst.Set(reflect.ValueOf(tp))
+				dst.Set(reflect.ValueOf(ts))
 			}
-		case *duration.Duration:
+		case *durationpb.Duration:
 			if t > 0 {
-				dst.Set(reflect.ValueOf(ptypes.DurationProto(time.Duration(t))))
+				dst.Set(reflect.ValueOf(durationpb.New(time.Duration(t))))
 			}
 		}
 		return true, nil

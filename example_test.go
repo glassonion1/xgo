@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/glassonion1/xgo"
-	"github.com/golang/protobuf/ptypes/timestamp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // It is a common, ordinary struct
@@ -20,8 +20,8 @@ type FromModel struct {
 type ToModel struct {
 	Id        string
 	Name      string
-	CreatedAt *timestamp.Timestamp
-	UpdatedAt *timestamp.Timestamp
+	CreatedAt *timestamppb.Timestamp
+	UpdatedAt *timestamppb.Timestamp
 }
 
 func ExampleDeepCopy() {

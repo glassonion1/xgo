@@ -64,7 +64,7 @@ func TestDeepCopy(t *testing.T) {
 		dest interface{}
 	}
 
-	now := time.Unix(time.Now().Unix(), 0)
+	now := time.Now()
 
 	tests := []struct {
 		name string
@@ -184,6 +184,70 @@ func TestDeepCopy(t *testing.T) {
 			},
 			want: &Int64Field{
 				ID: 2100000000,
+			},
+			err: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := xgo.DeepCopy(tt.in.src, tt.in.dest)
+			got := tt.in.dest
+			if tt.err == nil && err != nil {
+				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
+			}
+			if tt.err != nil && err == nil {
+				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
+			}
+			if tt.err != nil && err != tt.err {
+				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
+			}
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
+			}
+		})
+	}
+}
+
+func TestDeepCopy_Time(t *testing.T) {
+
+	type ModelA struct {
+		CreatedAt *time.Time
+		UpdatedAt time.Time
+	}
+
+	type ModelB struct {
+		CreatedAt time.Time
+		UpdatedAt *time.Time
+	}
+
+	type args struct {
+		src  interface{}
+		dest interface{}
+	}
+
+	now := time.Now()
+
+	tests := []struct {
+		name string
+		in   args
+		want interface{}
+		err  error
+	}{
+		{
+			name: "struct copy",
+			in: args{
+				src: ModelA{
+					CreatedAt: &now,
+					UpdatedAt: now,
+				},
+				dest: &ModelB{},
+			},
+			want: &ModelB{
+				CreatedAt: now,
+				UpdatedAt: &now,
 			},
 			err: nil,
 		},

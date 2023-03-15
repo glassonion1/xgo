@@ -124,7 +124,6 @@ func DeepCopy(srcModel interface{}, dstModel interface{}) error {
 }
 
 func setTimeField(src, dst reflect.Value) (bool, error) {
-
 	switch t := src.Interface().(type) {
 	case time.Time:
 		// time.Time -> *timestampps.Timestamp or int64
@@ -139,6 +138,8 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 			}
 		case int64:
 			dst.Set(reflect.ValueOf(t.Unix()))
+		case *time.Time:
+			dst.Set(reflect.ValueOf(&t))
 		}
 		return true, nil
 	case *time.Time:
@@ -158,6 +159,8 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 			}
 		case int64:
 			dst.Set(reflect.ValueOf(t.Unix()))
+		case time.Time:
+			dst.Set(reflect.ValueOf(*t))
 		}
 		return true, nil
 	case *timestamppb.Timestamp:

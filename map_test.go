@@ -31,6 +31,8 @@ func TestMap(t *testing.T) {
 
 	// Test error case
 	input2 := []int{1, 2, 3, 4, 5}
+	expected2 := []string{"1", "2", "4", "5"}
+
 	expectedErr := errors.New("failed to map")
 	f2 := func(i int) (string, error) {
 		if i == 3 {
@@ -43,7 +45,7 @@ func TestMap(t *testing.T) {
 	if !errors.Is(err2, expectedErr) {
 		t.Errorf("Expected error %v but got %v", expectedErr, err2)
 	}
-	if output2 != nil {
-		t.Errorf("Expected nil output but got %v", output2)
+	if diff := cmp.Diff(output2, expected2); diff != "" {
+		t.Errorf("Output does not match expected (-got +want):\n%s", diff)
 	}
 }

@@ -87,3 +87,29 @@ func ExampleContains() {
 	// contains float64: true
 	// contains struct: true
 }
+
+type Vegetables string
+
+const (
+	Pea     Vegetables = "Pea"
+	Okra    Vegetables = "Okra"
+	Pumpkin Vegetables = "Pumpkin"
+)
+
+type Model struct {
+	ID        *int
+	Name      *string
+	Material  *Vegetables
+	CreatedAt *time.Time
+}
+
+func ExampleNew() {
+	obj := Model{
+		ID:        xgo.New(123),
+		Name:      xgo.New("R2D2"),
+		Material:  xgo.New(Pea),
+		CreatedAt: xgo.New(time.Date(2020, 6, 1, 0, 0, 0, 0, time.UTC)),
+	}
+	fmt.Println("object:", obj)
+
+}

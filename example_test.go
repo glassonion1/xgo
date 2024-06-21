@@ -111,5 +111,4 @@ func ExampleNew() {
 		CreatedAt: xgo.New(time.Date(2020, 6, 1, 0, 0, 0, 0, time.UTC)),
 	}
 	fmt.Println("object:", obj)
-
 }

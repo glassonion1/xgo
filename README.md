@@ -1,11 +1,11 @@
-# xGo - Useful Go library
+# xgo - Useful Go library
 
 [![Test CLI](https://github.com/glassonion1/xgo/actions/workflows/test.yml/badge.svg)](https://github.com/glassonion1/xgo/actions/workflows/test.yml)
 [![Godoc](https://img.shields.io/badge/godoc-reference-blue)](https://godoc.org/github.com/glassonion1/xgo)
 [![Go Report Card](https://goreportcard.com/badge/github.com/glassonion1/xgo)](https://goreportcard.com/report/github.com/glassonion1/xgo)
 [![GitHub license](https://img.shields.io/github/license/glassonion1/xgo)](https://github.com/glassonion1/xgo/blob/main/LICENSE)
 
-XGo contains various useful features for gohers.
+the xgo contains various useful features for gohers.
 
 ## Features
 - Deep copy
@@ -22,6 +22,9 @@ $ go get github.com/glassonion1/xgo
 
 ## Usage
 ### Deep copy
+In layered architecture, there are times when we need to copy values between structs that have different types but share the same field names. 
+The DeepCopy function is designed to be used in such scenarios.
+#### struct to struct
 ```go
 package xgo_test
 
@@ -64,6 +67,39 @@ func Example() {
     fmt.Println("ToModel object:", to)
     
     // Output: ToModel object: &{xxxx R2D2 seconds:1590969600 seconds:1590969600}
+}
+```
+
+#### slice to slice
+```go
+type FromModel struct {
+    ID         string
+    Name       string
+}
+type ToModel struct {
+    ID         string
+    Name       string
+}
+
+func Example() {
+    from := []FromModel{
+        {
+            ID: "xxxx1",
+            Name: "R2D2",
+        },
+	{
+            ID: "xxxx2",
+            Name: "C3PO",
+        },
+    }
+    to := &[]ToModel{}
+    err := xgo.DeepCopy(from, to)
+    if err != nil {
+        // handles error
+    }
+    fmt.Println("ToModel object:", to)
+    
+    // Output: ToModel object: &[{xxxx1 R2D2} {xxxx2 C3PO}]
 }
 ```
 

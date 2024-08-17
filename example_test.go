@@ -8,23 +8,23 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// It is a common, ordinary struct
-type FromModel struct {
-	ID        string `copier:"Id"`
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt *time.Time
-}
+func ExampleDeepCopy_Struct() {
+	// It is a common, ordinary struct
+	type FromModel struct {
+		ID        string `copier:"Id"`
+		Name      string
+		CreatedAt time.Time
+		UpdatedAt *time.Time
+	}
 
-// It is like a protobuf struct on gRPC
-type ToModel struct {
-	Id        string
-	Name      string
-	CreatedAt *timestamppb.Timestamp
-	UpdatedAt *timestamppb.Timestamp
-}
+	// It is like a protobuf struct on gRPC
+	type ToModel struct {
+		Id        string
+		Name      string
+		CreatedAt *timestamppb.Timestamp
+		UpdatedAt *timestamppb.Timestamp
+	}
 
-func ExampleDeepCopy() {
 	now := time.Date(2020, 6, 1, 0, 0, 0, 0, time.UTC)
 	from := FromModel{
 		ID:        "xxxx",
@@ -40,6 +40,35 @@ func ExampleDeepCopy() {
 	fmt.Println("ToModel object:", to)
 
 	// Output: ToModel object: &{xxxx R2D2 seconds:1590969600 seconds:1590969600}
+}
+
+func ExampleDeepCopy_Slice() {
+	type FromModel struct {
+		ID   string
+		Name string
+	}
+	type ToModel struct {
+		ID   string
+		Name string
+	}
+	from := []FromModel{
+		{
+			ID:   "xxxx1",
+			Name: "R2D2",
+		},
+		{
+			ID:   "xxxx2",
+			Name: "C3PO",
+		},
+	}
+	to := &[]ToModel{}
+	err := xgo.DeepCopy(from, to)
+	if err != nil {
+		// handles error
+	}
+	fmt.Println("ToModel object:", to)
+
+	// Output: ToModel object: &[{xxxx1 R2D2} {xxxx2 C3PO}]
 }
 
 func ExampleContains() {

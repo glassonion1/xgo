@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ExampleDeepCopy_Struct() {
+func ExampleDeepCopy_struct() {
 	// It is a common, ordinary struct
 	type FromModel struct {
 		ID        string `copier:"Id"`
@@ -42,7 +42,7 @@ func ExampleDeepCopy_Struct() {
 	// Output: ToModel object: &{xxxx R2D2 seconds:1590969600 seconds:1590969600}
 }
 
-func ExampleDeepCopy_Slice() {
+func ExampleDeepCopy_slice() {
 	type FromModel struct {
 		ID   string
 		Name string

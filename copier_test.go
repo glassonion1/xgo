@@ -627,3 +627,203 @@ func TestDeepCopy_Private(t *testing.T) {
 		})
 	}
 }
+
+func TestDeepCopy_Slice(t *testing.T) {
+	type Model1 struct {
+		Foo string
+		Bar int
+	}
+	type Model2 struct {
+		Foo string
+		Bar int
+	}
+	type Example1 struct {
+		ID         string
+		Name       string
+		State      int
+		Tests      []string
+		StructPtrs []*Model1
+		Structs    []Model1
+	}
+	type Example2 struct {
+		ID         string
+		Name       string
+		State      int
+		Tests      []string
+		StructPtrs []*Model2
+		Structs    []Model2
+	}
+
+	type args struct {
+		src  Example1
+		dest *Example2
+	}
+
+	tests := []struct {
+		name string
+		in   args
+		want *Example2
+		err  error
+	}{
+		{
+			name: "slice value",
+			in: args{
+				src: Example1{
+					ID:         "id1",
+					Name:       "hoge1",
+					State:      100,
+					Tests:      []string{"test1", "test2"},
+					StructPtrs: []*Model1{{Foo: "foo1", Bar: 100}, {Foo: "foo2", Bar: 200}},
+					Structs:    []Model1{{Foo: "foo1", Bar: 1000}, {Foo: "foo2", Bar: 2000}},
+				},
+				dest: &Example2{},
+			},
+			want: &Example2{
+				ID:         "id1",
+				Name:       "hoge1",
+				State:      100,
+				Tests:      []string{"test1", "test2"},
+				StructPtrs: []*Model2{{Foo: "foo1", Bar: 100}, {Foo: "foo2", Bar: 200}},
+				Structs:    []Model2{{Foo: "foo1", Bar: 1000}, {Foo: "foo2", Bar: 2000}},
+			},
+			err: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := xgo.DeepCopy(tt.in.src, tt.in.dest)
+			got := tt.in.dest
+			if tt.err == nil && err != nil {
+				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
+			}
+			if tt.err != nil && err == nil {
+				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
+			}
+			if tt.err != nil && err != tt.err {
+				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
+			}
+			if ok := reflect.DeepEqual(tt.want, got); !ok {
+				t.Errorf("testing %s mismatch (-want +got):\n%v\n%v", tt.name, tt.want, got)
+			}
+		})
+	}
+}
+
+func TestDeepCopy_Slice2(t *testing.T) {
+	type Model1 struct {
+		Foo string
+		Bar int
+	}
+	type Model2 struct {
+		Foo string
+		Bar int
+	}
+	type Example1 struct {
+		ID         string
+		Name       string
+		State      int
+		Tests      []string
+		StructPtrs []*Model1
+		Structs    []Model1
+	}
+	type Example2 struct {
+		ID         string
+		Name       string
+		State      int
+		Tests      []string
+		StructPtrs []*Model2
+		Structs    []Model2
+	}
+
+	type args struct {
+		src  []*Example1
+		dest []*Example2
+	}
+
+	tests := []struct {
+		name string
+		in   args
+		want []*Example2
+		err  error
+	}{
+		{
+			name: "slice value",
+			in: args{
+				src: []*Example1{
+					{
+						ID:         "id1",
+						Name:       "hoge1",
+						State:      100,
+						Tests:      []string{"test1", "test2"},
+						StructPtrs: []*Model1{{Foo: "foo1-1", Bar: 100}, {Foo: "foo1-2", Bar: 200}},
+						Structs:    []Model1{{Foo: "foo1-1", Bar: 1000}, {Foo: "foo1-2", Bar: 2000}},
+					},
+					{
+						ID:      "id2",
+						Name:    "hoge2",
+						State:   200,
+						Tests:   []string{"test1", "test2"},
+						Structs: []Model1{{Foo: "foo2-1", Bar: 1000}, {Foo: "foo2-2", Bar: 2000}},
+					},
+					{
+						ID:         "id3",
+						Name:       "hoge3",
+						State:      300,
+						Tests:      []string{"test1", "test2"},
+						StructPtrs: []*Model1{{Foo: "foo3-1", Bar: 100}, {Foo: "foo3-2", Bar: 200}},
+					},
+				},
+				dest: []*Example2{},
+			},
+			want: []*Example2{
+				{
+					ID:         "id1",
+					Name:       "hoge1",
+					State:      100,
+					Tests:      []string{"test1", "test2"},
+					StructPtrs: []*Model2{{Foo: "foo1-1", Bar: 100}, {Foo: "foo1-2", Bar: 200}},
+					Structs:    []Model2{{Foo: "foo1-1", Bar: 1000}, {Foo: "foo1-2", Bar: 2000}},
+				},
+				{
+					ID:      "id2",
+					Name:    "hoge2",
+					State:   200,
+					Tests:   []string{"test1", "test2"},
+					Structs: []Model2{{Foo: "foo2-1", Bar: 1000}, {Foo: "foo2-2", Bar: 2000}},
+				},
+				{
+					ID:         "id3",
+					Name:       "hoge3",
+					State:      300,
+					Tests:      []string{"test1", "test2"},
+					StructPtrs: []*Model2{{Foo: "foo3-1", Bar: 100}, {Foo: "foo3-2", Bar: 200}},
+				},
+			},
+			err: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := xgo.DeepCopy(tt.in.src, &tt.in.dest)
+			got := tt.in.dest
+			if tt.err == nil && err != nil {
+				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
+			}
+			if tt.err != nil && err == nil {
+				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
+			}
+			if tt.err != nil && err != tt.err {
+				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
+			}
+			if ok := reflect.DeepEqual(tt.want, got); !ok {
+				t.Errorf("testing %s mismatch (-want +got):\n%v\n%v", tt.name, tt.want, got)
+			}
+		})
+	}
+}

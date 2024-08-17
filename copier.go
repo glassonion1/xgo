@@ -22,6 +22,13 @@ func DeepCopy(srcModel interface{}, dstModel interface{}) error {
 		return errors.New("copy to value is unaddressable")
 	}
 
+	if src.Kind() == reflect.Slice {
+		if err := copySlice(src, dst); err != nil {
+			return fmt.Errorf("%v", err)
+		}
+		return nil
+	}
+
 	// What to do if the deepcopy destination model has a tag
 	var srcToDstTagMap = map[string]string{}
 	for i := 0; i < dst.NumField(); i++ {
@@ -65,7 +72,7 @@ func DeepCopy(srcModel interface{}, dstModel interface{}) error {
 
 		isSet, err := setTimeField(srcFieldValue, dstFieldValue)
 		if err != nil {
-			return err
+			return fmt.Errorf("%v", err)
 		}
 		if isSet {
 			continue
@@ -78,48 +85,73 @@ func DeepCopy(srcModel interface{}, dstModel interface{}) error {
 			continue
 		case reflect.Struct:
 			if !field.Anonymous {
-				// struct to struct
-				s := reflect.New(dstFieldType.Type)
-				v := func() reflect.Value { return reflect.Indirect(s) }
-				if dstFieldType.Type.Kind() == reflect.Ptr {
-					// struct to ptr
-					s, v = reflect.New(dstFieldType.Type.Elem()), func() reflect.Value { return s }
-				}
-
-				if err := DeepCopy(srcFieldValue.Interface(), s.Interface()); err != nil {
+				dv, vFunc := instantiate(dstFieldValue)
+				if err := DeepCopy(srcFieldValue.Interface(), dv.Interface()); err != nil {
 					return fmt.Errorf("%v", err)
 				}
-				dstFieldValue.Set(v())
+				dstFieldValue.Set(vFunc())
 				continue
 			}
 			dstFieldValue.SetInt(srcFieldValue.Int())
-
 		case reflect.Ptr:
-			if !srcFieldValue.IsNil() {
-				// copy to indirect
-				indirect := reflect.Indirect(srcFieldValue)
-				if indirect.Type().AssignableTo(dstFieldType.Type) && dstFieldType.Type.Kind() != reflect.Ptr {
-					dstFieldValue.Set(indirect)
-					continue
-				}
-
-				// ptr to struct
-				s := reflect.New(dstFieldType.Type)
-				v := func() reflect.Value { return reflect.Indirect(s) }
-				if dstFieldType.Type.Kind() == reflect.Ptr {
-					// ptr to ptr
-					s, v = reflect.New(dstFieldType.Type.Elem()), func() reflect.Value { return s }
-				}
-
-				if err := DeepCopy(srcFieldValue.Interface(), s.Interface()); err != nil {
-					return fmt.Errorf("%v", err)
-				}
-				dstFieldValue.Set(v())
+			if srcFieldValue.IsNil() {
 				continue
 			}
+			// copy to indirect
+			indirect := reflect.Indirect(srcFieldValue)
+			if indirect.Type().AssignableTo(dstFieldType.Type) && dstFieldType.Type.Kind() != reflect.Ptr {
+				dstFieldValue.Set(indirect)
+				continue
+			}
+			dv, vFunc := instantiate(dstFieldValue)
+			if err := DeepCopy(srcFieldValue.Interface(), dv.Interface()); err != nil {
+				return fmt.Errorf("%v", err)
+			}
+			dstFieldValue.Set(vFunc())
+			continue
+
+		case reflect.Slice:
+			if err := copySlice(srcFieldValue, dstFieldValue); err != nil {
+				return fmt.Errorf("%v", err)
+			}
+			continue
 		}
 	}
 
+	return nil
+}
+
+// Instantiates a value that can handle copying in both directions - from a pointer to a struct and from a struct to a pointer.
+func instantiate(v reflect.Value) (reflect.Value, func() reflect.Value) {
+	// ptr
+	if v.Type().Kind() == reflect.Ptr {
+		rv := reflect.New(v.Type().Elem())
+		vFunc := func() reflect.Value { return rv }
+		return rv, vFunc
+	}
+
+	// struct
+	rv := reflect.New(v.Type())
+	vFunc := func() reflect.Value { return reflect.Indirect(rv) }
+	return rv, vFunc
+}
+
+func copySlice(src, dst reflect.Value) error {
+	if src.IsNil() {
+		return nil
+	}
+	slice := reflect.MakeSlice(reflect.SliceOf(dst.Type().Elem()), src.Len(), src.Cap())
+	dst.Set(slice)
+
+	for i := 0; i < src.Len(); i++ {
+		d := dst.Index(i)
+		dv, vFunc := instantiate(d)
+
+		if err := DeepCopy(src.Index(i).Interface(), dv.Interface()); err != nil {
+			return err
+		}
+		d.Set(vFunc())
+	}
 	return nil
 }
 

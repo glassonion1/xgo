@@ -20,11 +20,24 @@ The xgo contains various useful features for gohers.
 $ go get github.com/glassonion1/xgo
 ```
 
+## Import
+```go
+import "github.com/glassonion1/xgo"
+```
+
 ## Usage
 ### Deep copy
+field-to-field copying based on matching names.
+
 In layered architecture, there are times when we need to copy values between structs that have different types but share the same field names. 
 The DeepCopy function is designed to be used in such scenarios.
-#### struct to struct
+
+Support for copying data:
+- from struct to struct
+- from struct to pointer
+- from pointer to struct
+- from slice to slice
+#### from struct to struct
 ```go
 package xgo_test
 
@@ -70,7 +83,7 @@ func Example() {
 }
 ```
 
-#### slice to slice
+#### from slice to slice
 ```go
 type FromModel struct {
     ID         string

@@ -1,0 +1,6 @@
+github.com/glassonion1/xgo v0.0.8 h1:hsBwG9kFhme6r16PPmo0Sl4qbjVSaTX57w4qgbobR5o=
+github.com/glassonion1/xgo v0.0.8/go.mod h1:B4pO+hCevoyvVqhKTEq+BY0fVSrAY6bt39EFNFQh5Gw=
+github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
+github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+google.golang.org/protobuf v1.34.2 h1:6xV6lTsCfpGD21XK49h7MhtcApnLqkfYgPcdHftf6hg=
+google.golang.org/protobuf v1.34.2/go.mod h1:qYOHts0dSfpeUzUFpOMr/WGzszTmLH+DiWniOlNbLDw=

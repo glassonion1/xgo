@@ -15,6 +15,10 @@ The xgo contains various useful features for gohers.
 - Struct to map
 - Obtain pointers to types
 
+### Protobuf support
+There is an extension package that supports deep copying Protobuf timestamp types.
+- [xgo pb](https://github.com/glassonion1/xgo/tree/main/xgopb)
+
 ## Install
 ```
 $ go get github.com/glassonion1/xgo

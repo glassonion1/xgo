@@ -50,11 +50,7 @@ func DeepCopyWithCustomSetter(
 
 	for i := 0; i < src.NumField(); i++ {
 		field := src.Type().Field(i)
-		srcFieldType, ok := src.Type().FieldByName(field.Name)
 		srcFieldValue := src.FieldByName(field.Name)
-		if !ok {
-			continue
-		}
 
 		dstFieldName := field.Name
 		if tag, ok := field.Tag.Lookup(tagCopier); ok {
@@ -64,7 +60,7 @@ func DeepCopyWithCustomSetter(
 			dstFieldName = tag
 		}
 
-		dstFieldType, ok := dst.Type().FieldByName(dstFieldName)
+		_, ok := dst.Type().FieldByName(dstFieldName)
 		dstFieldValue := dst.FieldByName(dstFieldName)
 		if !ok {
 			continue
@@ -76,14 +72,35 @@ func DeepCopyWithCustomSetter(
 		}
 
 		// string, int, float
-		if srcFieldType.Type.ConvertibleTo(dstFieldType.Type) {
-			dstFieldValue.Set(srcFieldValue.Convert(dstFieldType.Type))
+		if srcFieldValue.Type().ConvertibleTo(dstFieldValue.Type()) {
+			dstFieldValue.Set(srcFieldValue.Convert(dstFieldValue.Type()))
 			continue
+		}
+
+		// *string, *int, *float to string, int, float
+		if srcFieldValue.Type().Kind() == reflect.Ptr {
+			if srcFieldValue.IsNil() {
+				continue
+			}
+			if srcFieldValue.Type().Elem().ConvertibleTo(dstFieldValue.Type()) {
+				dstFieldValue.Set(srcFieldValue.Elem().Convert(dstFieldValue.Type()))
+				continue
+			}
+		}
+
+		// string, int, float to *string, *int, *float
+		if dstFieldValue.Type().Kind() == reflect.Ptr {
+			if srcFieldValue.Type().ConvertibleTo(dstFieldValue.Type().Elem()) {
+				rv := reflect.New(dstFieldValue.Type().Elem())
+				rv.Elem().Set(srcFieldValue.Convert(dstFieldValue.Type().Elem()))
+				dstFieldValue.Set(rv)
+				continue
+			}
 		}
 
 		isSet, err := customSetter(srcFieldValue, dstFieldValue)
 		if err != nil {
-			return fmt.Errorf("%v", err)
+			return fmt.Errorf("%s: %v", field.Name, err)
 		}
 		if isSet {
 			continue
@@ -92,7 +109,7 @@ func DeepCopyWithCustomSetter(
 		// set the time.Time field
 		isSet, err = setTimeField(srcFieldValue, dstFieldValue)
 		if err != nil {
-			return fmt.Errorf("%v", err)
+			return fmt.Errorf("%s: %v", field.Name, err)
 		}
 		if isSet {
 			continue
@@ -104,31 +121,33 @@ func DeepCopyWithCustomSetter(
 			if !field.Anonymous {
 				dv, vFunc := instantiate(dstFieldValue)
 				if err := DeepCopy(srcFieldValue.Interface(), dv.Interface()); err != nil {
-					return fmt.Errorf("%v", err)
+					return fmt.Errorf("%s: %v", field.Name, err)
 				}
 				dstFieldValue.Set(vFunc())
 				continue
 			}
 			dstFieldValue.SetInt(srcFieldValue.Int())
 		case reflect.Ptr:
+
 			if srcFieldValue.IsNil() {
 				continue
 			}
 			// copy to indirect
 			indirect := reflect.Indirect(srcFieldValue)
-			if indirect.Type().AssignableTo(dstFieldType.Type) && dstFieldType.Type.Kind() != reflect.Ptr {
+			if indirect.Type().AssignableTo(dstFieldValue.Type()) && dstFieldValue.Type().Kind() != reflect.Ptr {
 				dstFieldValue.Set(indirect)
 				continue
 			}
+
 			dv, vFunc := instantiate(dstFieldValue)
 			if err := DeepCopy(srcFieldValue.Interface(), dv.Interface()); err != nil {
-				return fmt.Errorf("%v", err)
+				return fmt.Errorf("%s: %v", field.Name, err)
 			}
 			dstFieldValue.Set(vFunc())
 			continue
 		case reflect.Slice:
 			if err := copySlice(srcFieldValue, dstFieldValue); err != nil {
-				return fmt.Errorf("%v", err)
+				return fmt.Errorf("%s: %v", field.Name, err)
 			}
 			continue
 		}
@@ -162,8 +181,15 @@ func copySlice(src, dst reflect.Value) error {
 
 	for i := 0; i < src.Len(); i++ {
 		d := dst.Index(i)
-		dv, vFunc := instantiate(d)
 
+		// Other than pointer and struct
+		if src.Index(i).Type().ConvertibleTo(d.Type()) {
+			d.Set(src.Index(i).Convert(d.Type()))
+			continue
+		}
+
+		// pointer or struct
+		dv, vFunc := instantiate(d)
 		if err := DeepCopy(src.Index(i).Interface(), dv.Interface()); err != nil {
 			return err
 		}
@@ -180,9 +206,6 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 		case int64:
 			dst.Set(reflect.ValueOf(t.Unix()))
 			return true, nil
-		case *time.Time:
-			dst.Set(reflect.ValueOf(&t))
-			return true, nil
 		}
 
 	case *time.Time:
@@ -193,9 +216,6 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 		switch dst.Interface().(type) {
 		case int64:
 			dst.Set(reflect.ValueOf(t.Unix()))
-			return true, nil
-		case time.Time:
-			dst.Set(reflect.ValueOf(*t))
 			return true, nil
 		}
 

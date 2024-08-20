@@ -586,3 +586,101 @@ func TestDeepCopy_slice2(t *testing.T) {
 		})
 	}
 }
+
+func TestDeepCopy_ptr(t *testing.T) {
+	type Foo string
+	type Bar string
+	type FooNum int
+	type BarNum int
+
+	type Example1 struct {
+		Tests   []Foo
+		Test2s  []*Foo
+		Test    *Foo
+		Test2   Foo
+		Nums    []FooNum
+		NumPtrs []*FooNum
+	}
+	type Example2 struct {
+		Tests   []Bar
+		Test2s  []Bar
+		Test    Bar
+		Test2   *Bar
+		Nums    []BarNum
+		NumPtrs []*BarNum
+	}
+
+	type args struct {
+		src  Example1
+		dest *Example2
+	}
+
+	tests := []struct {
+		name string
+		in   args
+		want *Example2
+		err  error
+	}{
+		{
+			name: "slice value",
+			in: args{
+				src: Example1{
+					Tests: []Foo{"test1", "test2"},
+					//Test2s:  []*Foo{xgo.ToPtr(Foo("test1")), xgo.ToPtr(Foo("test2"))},
+					Test:    xgo.ToPtr(Foo("test3")),
+					Test2:   "test4",
+					Nums:    []FooNum{1, 2, 3, 4},
+					NumPtrs: []*FooNum{xgo.ToPtr(FooNum(1)), xgo.ToPtr(FooNum(2))},
+				},
+				dest: &Example2{},
+			},
+			want: &Example2{
+				Tests: []Bar{"test1", "test2"},
+				//Test2s:  []Bar{"test1", "test2"},
+				Test:    "test3",
+				Test2:   xgo.ToPtr(Bar("test4")),
+				Nums:    []BarNum{1, 2, 3, 4},
+				NumPtrs: []*BarNum{xgo.ToPtr(BarNum(1)), xgo.ToPtr(BarNum(2))},
+			},
+			err: nil,
+		},
+		{
+			name: "nil or zero value",
+			in: args{
+				src: Example1{
+					Tests: []Foo{"test1", "test2"},
+					Nums:  []FooNum{1, 2, 3, 4},
+				},
+				dest: &Example2{},
+			},
+			want: &Example2{
+				Tests: []Bar{"test1", "test2"},
+				Test:  "",
+				Test2: xgo.ToPtr(Bar("")),
+				Nums:  []BarNum{1, 2, 3, 4},
+			},
+			err: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := xgo.DeepCopy(tt.in.src, tt.in.dest)
+			got := tt.in.dest
+			if tt.err == nil && err != nil {
+				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
+			}
+			if tt.err != nil && err == nil {
+				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
+			}
+			if tt.err != nil && err != tt.err {
+				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
+			}
+			if ok := reflect.DeepEqual(tt.want, got); !ok {
+				t.Errorf("testing %s mismatch (-want +got):\n%v\n%v", tt.name, tt.want, got)
+			}
+		})
+	}
+}

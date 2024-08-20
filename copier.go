@@ -71,34 +71,15 @@ func DeepCopyWithCustomSetter(
 			continue
 		}
 
-		// string, int, float
-		if srcFieldValue.Type().ConvertibleTo(dstFieldValue.Type()) {
-			dstFieldValue.Set(srcFieldValue.Convert(dstFieldValue.Type()))
+		isSet, err := convert(srcFieldValue, dstFieldValue)
+		if err != nil {
+			return fmt.Errorf("%s: %v", field.Name, err)
+		}
+		if isSet {
 			continue
 		}
 
-		// *string, *int, *float to string, int, float
-		if srcFieldValue.Type().Kind() == reflect.Ptr {
-			if srcFieldValue.IsNil() {
-				continue
-			}
-			if srcFieldValue.Type().Elem().ConvertibleTo(dstFieldValue.Type()) {
-				dstFieldValue.Set(srcFieldValue.Elem().Convert(dstFieldValue.Type()))
-				continue
-			}
-		}
-
-		// string, int, float to *string, *int, *float
-		if dstFieldValue.Type().Kind() == reflect.Ptr {
-			if srcFieldValue.Type().ConvertibleTo(dstFieldValue.Type().Elem()) {
-				rv := reflect.New(dstFieldValue.Type().Elem())
-				rv.Elem().Set(srcFieldValue.Convert(dstFieldValue.Type().Elem()))
-				dstFieldValue.Set(rv)
-				continue
-			}
-		}
-
-		isSet, err := customSetter(srcFieldValue, dstFieldValue)
+		isSet, err = customSetter(srcFieldValue, dstFieldValue)
 		if err != nil {
 			return fmt.Errorf("%s: %v", field.Name, err)
 		}
@@ -172,6 +153,38 @@ func instantiate(v reflect.Value) (reflect.Value, func() reflect.Value) {
 	return rv, vFunc
 }
 
+func convert(src, dst reflect.Value) (bool, error) {
+
+	// the source and destination types are the same
+	if src.Type().ConvertibleTo(dst.Type()) {
+		dst.Set(src.Convert(dst.Type()))
+		return true, nil
+	}
+
+	// from pointer type to non pointer type
+	if src.Type().Kind() == reflect.Ptr {
+		if src.IsNil() {
+			return true, nil
+		}
+		if src.Type().Elem().ConvertibleTo(dst.Type()) {
+			dst.Set(src.Elem().Convert(dst.Type()))
+			return true, nil
+		}
+	}
+
+	// from non pointer type to pointer type
+	if dst.Type().Kind() == reflect.Ptr {
+		if src.Type().ConvertibleTo(dst.Type().Elem()) {
+			rv := reflect.New(dst.Type().Elem())
+			rv.Elem().Set(src.Convert(dst.Type().Elem()))
+			dst.Set(rv)
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func copySlice(src, dst reflect.Value) error {
 	if src.IsNil() {
 		return nil
@@ -182,9 +195,11 @@ func copySlice(src, dst reflect.Value) error {
 	for i := 0; i < src.Len(); i++ {
 		d := dst.Index(i)
 
-		// Other than pointer and struct
-		if src.Index(i).Type().ConvertibleTo(d.Type()) {
-			d.Set(src.Index(i).Convert(d.Type()))
+		isSet, err := convert(src.Index(i), d)
+		if err != nil {
+			return err
+		}
+		if isSet {
 			continue
 		}
 
@@ -201,29 +216,60 @@ func copySlice(src, dst reflect.Value) error {
 func setTimeField(src, dst reflect.Value) (bool, error) {
 	switch t := src.Interface().(type) {
 	case time.Time:
-		// time.Time -> *timestampps.Timestamp or int64
+		// time.Time -> int64
 		switch dst.Interface().(type) {
 		case int64:
 			dst.Set(reflect.ValueOf(t.Unix()))
+			return true, nil
+		case *int64:
+			rv := reflect.New(dst.Type().Elem())
+			rv.Elem().Set(reflect.ValueOf(t.Unix()))
+			dst.Set(rv)
 			return true, nil
 		}
 
 	case *time.Time:
 		if t == nil {
-			return false, nil
+			return true, nil
 		}
-		// *time.Time -> timestampps.Timestamp or int64
+		// *time.Time -> int64 or *int64
 		switch dst.Interface().(type) {
 		case int64:
 			dst.Set(reflect.ValueOf(t.Unix()))
 			return true, nil
+		case *int64:
+			rv := reflect.New(dst.Type().Elem())
+			rv.Elem().Set(reflect.ValueOf(t.Unix()))
+			dst.Set(rv)
+			return true, nil
 		}
 
 	case int64:
-		// int64 -> time.Time or *timestamppb.Timestamp or *durationpb.Duration
+		// int64 -> time.Time or *time.Time
 		switch dst.Interface().(type) {
 		case time.Time:
 			dst.Set(reflect.ValueOf(time.Unix(t, 0)))
+			return true, nil
+		case *time.Time:
+			rv := reflect.New(dst.Type().Elem())
+			rv.Elem().Set(reflect.ValueOf(time.Unix(t, 0)))
+			dst.Set(rv)
+			return true, nil
+		}
+
+	case *int64:
+		if t == nil {
+			return true, nil
+		}
+		// *int64 -> time.Time or *time.Time
+		switch dst.Interface().(type) {
+		case time.Time:
+			reflect.Indirect(dst).Set(reflect.ValueOf(time.Unix(*t, 0)))
+			return true, nil
+		case *time.Time:
+			rv := reflect.New(dst.Type().Elem())
+			rv.Elem().Set(reflect.ValueOf(time.Unix(*t, 0)))
+			dst.Set(rv)
 			return true, nil
 		}
 	}

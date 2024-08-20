@@ -220,12 +220,27 @@ func TestDeepCopy_time(t *testing.T) {
 		UpdatedAt *time.Time
 	}
 
+	type ModelC struct {
+		CreatedAt  time.Time
+		UpdatedAt  time.Time
+		DeletedAt  *time.Time
+		ReplacedAt *time.Time
+	}
+
+	type ModelD struct {
+		CreatedAt  int64
+		UpdatedAt  *int64
+		DeletedAt  int64
+		ReplacedAt *int64
+	}
+
 	type args struct {
 		src  interface{}
 		dest interface{}
 	}
 
-	now := time.Now()
+	dt := time.Now()
+	now := time.Unix(dt.Unix(), 0)
 
 	tests := []struct {
 		name string
@@ -234,7 +249,7 @@ func TestDeepCopy_time(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "struct copy",
+			name: "time.Time to time.Time",
 			in: args{
 				src: ModelA{
 					CreatedAt: &now,
@@ -248,69 +263,43 @@ func TestDeepCopy_time(t *testing.T) {
 			},
 			err: nil,
 		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			err := xgo.DeepCopy(tt.in.src, tt.in.dest)
-			got := tt.in.dest
-			if tt.err == nil && err != nil {
-				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
-			}
-			if tt.err != nil && err == nil {
-				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
-			}
-			if tt.err != nil && err != tt.err {
-				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
-			}
-			if diff := cmp.Diff(tt.want, got); diff != "" {
-				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
-			}
-		})
-	}
-}
-
-func TestDeepCopy_customType(t *testing.T) {
-	type StringField struct {
-		Name string
-	}
-
-	type MyString string
-
-	type MyStringField struct {
-		Name MyString
-	}
-
-	type args struct {
-		src  interface{}
-		dest interface{}
-	}
-
-	tests := []struct {
-		name string
-		in   args
-		want interface{}
-		err  error
-	}{
 		{
-			name: "string to myString value",
+			name: "time.Time to int64",
 			in: args{
-				src:  StringField{Name: "foo"},
-				dest: &MyStringField{},
+				src: ModelC{
+					CreatedAt:  now,
+					UpdatedAt:  now,
+					DeletedAt:  &now,
+					ReplacedAt: &now,
+				},
+				dest: &ModelD{},
 			},
-			want: &MyStringField{Name: "foo"},
-			err:  nil,
+			want: &ModelD{
+				CreatedAt:  now.Unix(),
+				UpdatedAt:  xgo.ToPtr(now.Unix()),
+				DeletedAt:  now.Unix(),
+				ReplacedAt: xgo.ToPtr(now.Unix()),
+			},
+			err: nil,
 		},
 		{
-			name: "myString to string value",
+			name: "int64 to time.Time",
 			in: args{
-				src:  MyStringField{Name: "bar"},
-				dest: &StringField{},
+				src: ModelD{
+					CreatedAt:  now.Unix(),
+					UpdatedAt:  xgo.ToPtr(now.Unix()),
+					DeletedAt:  now.Unix(),
+					ReplacedAt: xgo.ToPtr(now.Unix()),
+				},
+				dest: &ModelC{},
 			},
-			want: &StringField{Name: "bar"},
-			err:  nil,
+			want: &ModelC{
+				CreatedAt:  now,
+				UpdatedAt:  now,
+				DeletedAt:  &now,
+				ReplacedAt: &now,
+			},
+			err: nil,
 		},
 	}
 
@@ -587,27 +576,23 @@ func TestDeepCopy_slice2(t *testing.T) {
 	}
 }
 
-func TestDeepCopy_ptr(t *testing.T) {
+func TestDeepCopy_ptr_slice(t *testing.T) {
 	type Foo string
 	type Bar string
 	type FooNum int
 	type BarNum int
 
 	type Example1 struct {
-		Tests   []Foo
-		Test2s  []*Foo
-		Test    *Foo
-		Test2   Foo
-		Nums    []FooNum
-		NumPtrs []*FooNum
+		StructToStruct []Foo
+		StructToPtr    []Foo
+		PtrToStruct    []*Foo
+		PtrToPtr       []*Foo
 	}
 	type Example2 struct {
-		Tests   []Bar
-		Test2s  []Bar
-		Test    Bar
-		Test2   *Bar
-		Nums    []BarNum
-		NumPtrs []*BarNum
+		StructToStruct []Bar
+		StructToPtr    []*Bar
+		PtrToStruct    []Bar
+		PtrToPtr       []*Bar
 	}
 
 	type args struct {
@@ -625,39 +610,119 @@ func TestDeepCopy_ptr(t *testing.T) {
 			name: "slice value",
 			in: args{
 				src: Example1{
-					Tests: []Foo{"test1", "test2"},
-					//Test2s:  []*Foo{xgo.ToPtr(Foo("test1")), xgo.ToPtr(Foo("test2"))},
-					Test:    xgo.ToPtr(Foo("test3")),
-					Test2:   "test4",
-					Nums:    []FooNum{1, 2, 3, 4},
-					NumPtrs: []*FooNum{xgo.ToPtr(FooNum(1)), xgo.ToPtr(FooNum(2))},
+					StructToStruct: []Foo{"test1", "test2"},
+					StructToPtr:    []Foo{"test1", "test2"},
+					PtrToStruct:    []*Foo{xgo.ToPtr(Foo("test1")), xgo.ToPtr(Foo("test2"))},
+					PtrToPtr:       []*Foo{xgo.ToPtr(Foo("test1")), xgo.ToPtr(Foo("test2"))},
 				},
 				dest: &Example2{},
 			},
 			want: &Example2{
-				Tests: []Bar{"test1", "test2"},
-				//Test2s:  []Bar{"test1", "test2"},
-				Test:    "test3",
-				Test2:   xgo.ToPtr(Bar("test4")),
-				Nums:    []BarNum{1, 2, 3, 4},
-				NumPtrs: []*BarNum{xgo.ToPtr(BarNum(1)), xgo.ToPtr(BarNum(2))},
+				StructToStruct: []Bar{"test1", "test2"},
+				StructToPtr:    []*Bar{xgo.ToPtr(Bar("test1")), xgo.ToPtr(Bar("test2"))},
+				PtrToStruct:    []Bar{"test1", "test2"},
+				PtrToPtr:       []*Bar{xgo.ToPtr(Bar("test1")), xgo.ToPtr(Bar("test2"))},
 			},
 			err: nil,
 		},
 		{
 			name: "nil or zero value",
 			in: args{
+				src:  Example1{},
+				dest: &Example2{},
+			},
+			want: &Example2{
+				StructToStruct: nil,
+				StructToPtr:    nil,
+				PtrToStruct:    nil,
+				PtrToPtr:       nil,
+			},
+			err: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := xgo.DeepCopy(tt.in.src, tt.in.dest)
+			got := tt.in.dest
+			if tt.err == nil && err != nil {
+				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
+			}
+			if tt.err != nil && err == nil {
+				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
+			}
+			if tt.err != nil && err != tt.err {
+				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
+			}
+			if ok := reflect.DeepEqual(tt.want, got); !ok {
+				t.Errorf("testing %s mismatch (-want +got):\n%v\n%v", tt.name, tt.want, got)
+			}
+		})
+	}
+}
+
+func TestDeepCopy_customtype(t *testing.T) {
+	type Foo string
+	type Bar string
+	type FooNum int
+	type BarNum int
+
+	type Example1 struct {
+		StructToStruct Foo
+		StructToPtr    Foo
+		PtrToStruct    *Foo
+		PtrToPtr       *Foo
+	}
+	type Example2 struct {
+		StructToStruct Bar
+		StructToPtr    *Bar
+		PtrToStruct    Bar
+		PtrToPtr       *Bar
+	}
+
+	type args struct {
+		src  Example1
+		dest *Example2
+	}
+
+	tests := []struct {
+		name string
+		in   args
+		want *Example2
+		err  error
+	}{
+		{
+			name: "custom type",
+			in: args{
 				src: Example1{
-					Tests: []Foo{"test1", "test2"},
-					Nums:  []FooNum{1, 2, 3, 4},
+					StructToStruct: "test1",
+					StructToPtr:    "test2",
+					PtrToStruct:    xgo.ToPtr(Foo("test3")),
+					PtrToPtr:       xgo.ToPtr(Foo("test4")),
 				},
 				dest: &Example2{},
 			},
 			want: &Example2{
-				Tests: []Bar{"test1", "test2"},
-				Test:  "",
-				Test2: xgo.ToPtr(Bar("")),
-				Nums:  []BarNum{1, 2, 3, 4},
+				StructToStruct: "test1",
+				StructToPtr:    xgo.ToPtr(Bar("test2")),
+				PtrToStruct:    "test3",
+				PtrToPtr:       xgo.ToPtr(Bar("test4")),
+			},
+			err: nil,
+		},
+		{
+			name: "nil or zero value",
+			in: args{
+				src:  Example1{},
+				dest: &Example2{},
+			},
+			want: &Example2{
+				StructToStruct: "",
+				StructToPtr:    xgo.ToPtr(Bar("")),
+				PtrToStruct:    "",
+				PtrToPtr:       nil,
 			},
 			err: nil,
 		},

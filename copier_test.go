@@ -644,213 +644,34 @@ func TestDeepCopy_ptr_slice(t *testing.T) {
 	}
 }
 
-func TestDeepCopy_customtype(t *testing.T) {
-	type Foo string
-	type Bar string
-
-	type Example1 struct {
-		StrToStr Foo
-		StrToPtr Foo
-		PtrToStr *Foo
-		PtrToPtr *Foo
-	}
-	type Example2 struct {
-		StrToStr Bar
-		StrToPtr *Bar
-		PtrToStr Bar
-		PtrToPtr *Bar
-	}
-
-	type args struct {
-		src  Example1
-		dest *Example2
-	}
-
-	tests := []struct {
-		name string
-		in   args
-		want *Example2
-		err  error
-	}{
-		{
-			name: "custom type",
-			in: args{
-				src: Example1{
-					StrToStr: "test1",
-					StrToPtr: "test2",
-					PtrToStr: xgo.ToPtr(Foo("test3")),
-					PtrToPtr: xgo.ToPtr(Foo("test4")),
-				},
-				dest: &Example2{},
-			},
-			want: &Example2{
-				StrToStr: "test1",
-				StrToPtr: xgo.ToPtr(Bar("test2")),
-				PtrToStr: "test3",
-				PtrToPtr: xgo.ToPtr(Bar("test4")),
-			},
-			err: nil,
-		},
-		{
-			name: "nil or zero value",
-			in: args{
-				src:  Example1{},
-				dest: &Example2{},
-			},
-			want: &Example2{
-				StrToStr: "",
-				StrToPtr: xgo.ToPtr(Bar("")),
-				PtrToStr: "",
-				PtrToPtr: nil,
-			},
-			err: nil,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			err := xgo.DeepCopy(tt.in.src, tt.in.dest)
-			got := tt.in.dest
-			if tt.err == nil && err != nil {
-				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
-			}
-			if tt.err != nil && err != tt.err {
-				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
-			}
-			if diff := cmp.Diff(tt.want, got); diff != "" {
-				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
-			}
-		})
-	}
-}
-
-func TestDeepCopy_number(t *testing.T) {
-	/*
-		type NumField1[T any] struct {
-			NumToNum T
-			NumToPtr T
-			PtrToNum *T
-			PtrToPtr *T
-		}
-		type NumField2[S any] struct {
-			NumToNum S
-			NumToPtr *S
-			PtrToNum S
-			PtrToPtr *S
-		}
-
-		type Example1 struct {
-			IntToInt     NumField1[int]
-			Int32ToInt64 NumField1[int32]
-		}
-
-		type Example2 struct {
-			IntToInt     NumField2[int]
-			Int32ToInt64 NumField2[int64]
-		}
-
-		type args[T, S any] struct {
-			src  NumField1[T]
-			dest *NumField2[S]
-		}
-
-		type Test[T, S any] struct {
-			name string
-			in   args[T, S]
-			want *NumField2[S]
-			err  error
-		}
-	*/
-	test1 := Test[int, int]{
-		name: "int to int",
-		in: args[int, int]{
-			src: NumField1[int]{
-				NumToNum: 1000,
-				NumToPtr: 2000,
-				PtrToNum: xgo.ToPtr(3000),
-				PtrToPtr: xgo.ToPtr(4000),
-			},
-			dest: &NumField2[int]{},
-		},
-		want: &NumField2[int]{
-			NumToNum: 1000,
-			NumToPtr: xgo.ToPtr(2000),
-			PtrToNum: 3000,
-			PtrToPtr: xgo.ToPtr(4000),
-		},
-		err: nil,
-	}
-
-	test2 := Test[int32, int64]{
-		name: "int to int",
-		in: args[int32, int64]{
-			src: NumField1[int32]{
-				NumToNum: 1000,
-				NumToPtr: 2000,
-				PtrToNum: xgo.ToPtr(int32(3000)),
-				//PtrToPtr: xgo.ToPtr(int32(4000)),
-			},
-			dest: &NumField2[int64]{},
-		},
-		want: &NumField2[int64]{
-			NumToNum: 1000,
-			NumToPtr: xgo.ToPtr(int64(2000)),
-			PtrToNum: int64(3000),
-			//PtrToPtr: xgo.ToPtr(int64(4000)),
-		},
-		err: nil,
-	}
-
-	test(t, test1)
-	test(t, test2)
-
-	/*
-		tt := test1
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			err := xgo.DeepCopy(tt.in.src, tt.in.dest)
-			got := tt.in.dest
-			if tt.err == nil && err != nil {
-				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
-			}
-			if tt.err != nil && err != tt.err {
-				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
-			}
-			if diff := cmp.Diff(tt.want, got); diff != "" {
-				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
-			}
-		})*/
-
-}
-
-type NumField1[T any] struct {
-	NumToNum T
-	NumToPtr T
-	PtrToNum *T
+type Field1[T any] struct {
+	ValToVal T
+	ValToPtr T
+	PtrToVal *T
 	PtrToPtr *T
 }
-type NumField2[S any] struct {
-	NumToNum S
-	NumToPtr *S
-	PtrToNum S
+type Field2[S any] struct {
+	ValToVal S
+	ValToPtr *S
+	PtrToVal S
 	PtrToPtr *S
 }
 
 type args[T, S any] struct {
-	src  NumField1[T]
-	dest *NumField2[S]
+	src  Field1[T]
+	dest *Field2[S]
 }
 
 type Test[T, S any] struct {
 	name string
 	in   args[T, S]
-	want *NumField2[S]
+	want *Field2[S]
 	err  error
 }
 
 func test[T, S any](t *testing.T, tt Test[T, S]) {
+	t.Helper()
+
 	t.Run(tt.name, func(t *testing.T) {
 		t.Parallel()
 		err := xgo.DeepCopy(tt.in.src, tt.in.dest)
@@ -865,4 +686,191 @@ func test[T, S any](t *testing.T, tt Test[T, S]) {
 			t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
 		}
 	})
+}
+
+func TestDeepCopy_customtype(t *testing.T) {
+
+	test1 := Test[int, int]{
+		name: "int to int",
+		in: args[int, int]{
+			src: Field1[int]{
+				ValToVal: 1000,
+				ValToPtr: 2000,
+				PtrToVal: xgo.ToPtr(3000),
+				PtrToPtr: xgo.ToPtr(4000),
+			},
+			dest: &Field2[int]{},
+		},
+		want: &Field2[int]{
+			ValToVal: 1000,
+			ValToPtr: xgo.ToPtr(2000),
+			PtrToVal: 3000,
+			PtrToPtr: xgo.ToPtr(4000),
+		},
+		err: nil,
+	}
+
+	test2 := Test[int32, int64]{
+		name: "int32 to int64",
+		in: args[int32, int64]{
+			src: Field1[int32]{
+				ValToVal: 1000,
+				ValToPtr: 2000,
+				PtrToVal: xgo.ToPtr(int32(3000)),
+				PtrToPtr: xgo.ToPtr(int32(4000)),
+			},
+			dest: &Field2[int64]{},
+		},
+		want: &Field2[int64]{
+			ValToVal: 1000,
+			ValToPtr: xgo.ToPtr(int64(2000)),
+			PtrToVal: 3000,
+			PtrToPtr: xgo.ToPtr(int64(4000)),
+		},
+		err: nil,
+	}
+
+	test3 := Test[int64, int32]{
+		name: "int64 to int32",
+		in: args[int64, int32]{
+			src: Field1[int64]{
+				ValToVal: 1000,
+				ValToPtr: 2000,
+				PtrToVal: xgo.ToPtr(int64(3000)),
+				PtrToPtr: xgo.ToPtr(int64(4000)),
+			},
+			dest: &Field2[int32]{},
+		},
+		want: &Field2[int32]{
+			ValToVal: 1000,
+			ValToPtr: xgo.ToPtr(int32(2000)),
+			PtrToVal: 3000,
+			PtrToPtr: xgo.ToPtr(int32(4000)),
+		},
+		err: nil,
+	}
+
+	// 10.625 is a number that is divisible in binary
+	test4 := Test[float32, float64]{
+		name: "float32 to float64",
+		in: args[float32, float64]{
+			src: Field1[float32]{
+				ValToVal: 10.625,
+				ValToPtr: 10.625,
+				PtrToVal: xgo.ToPtr(float32(10.625)),
+				PtrToPtr: xgo.ToPtr(float32(10.625)),
+			},
+			dest: &Field2[float64]{},
+		},
+		want: &Field2[float64]{
+			ValToVal: 10.625,
+			ValToPtr: xgo.ToPtr(float64(10.625)),
+			PtrToVal: 10.625,
+			PtrToPtr: xgo.ToPtr(float64(10.625)),
+		},
+		err: nil,
+	}
+
+	test5 := Test[float64, float32]{
+		name: "float64 to float32",
+		in: args[float64, float32]{
+			src: Field1[float64]{
+				ValToVal: 10.625,
+				ValToPtr: 10.625,
+				PtrToVal: xgo.ToPtr(float64(10.625)),
+				PtrToPtr: xgo.ToPtr(float64(10.625)),
+			},
+			dest: &Field2[float32]{},
+		},
+		want: &Field2[float32]{
+			ValToVal: 10.625,
+			ValToPtr: xgo.ToPtr(float32(10.625)),
+			PtrToVal: 10.625,
+			PtrToPtr: xgo.ToPtr(float32(10.625)),
+		},
+		err: nil,
+	}
+
+	test6 := Test[string, string]{
+		name: "string to string",
+		in: args[string, string]{
+			src: Field1[string]{
+				ValToVal: "test1",
+				ValToPtr: "test2",
+				PtrToVal: xgo.ToPtr("test3"),
+				PtrToPtr: xgo.ToPtr("test4"),
+			},
+			dest: &Field2[string]{},
+		},
+		want: &Field2[string]{
+			ValToVal: "test1",
+			ValToPtr: xgo.ToPtr("test2"),
+			PtrToVal: "test3",
+			PtrToPtr: xgo.ToPtr("test4"),
+		},
+		err: nil,
+	}
+
+	type Foo string
+	type Bar string
+	test7 := Test[Foo, Bar]{
+		name: "custom type to custom type",
+		in: args[Foo, Bar]{
+			src: Field1[Foo]{
+				ValToVal: "test1",
+				ValToPtr: "test2",
+				PtrToVal: xgo.ToPtr(Foo("test3")),
+				PtrToPtr: xgo.ToPtr(Foo("test4")),
+			},
+			dest: &Field2[Bar]{},
+		},
+		want: &Field2[Bar]{
+			ValToVal: "test1",
+			ValToPtr: xgo.ToPtr(Bar("test2")),
+			PtrToVal: "test3",
+			PtrToPtr: xgo.ToPtr(Bar("test4")),
+		},
+		err: nil,
+	}
+
+	// Conversion of a zero value to a pointer results in the value being set to zero.
+	test8 := Test[string, string]{
+		name: "nil or zero value",
+		in: args[string, string]{
+			src:  Field1[string]{},
+			dest: &Field2[string]{},
+		},
+		want: &Field2[string]{
+			ValToVal: "",
+			ValToPtr: xgo.ToPtr(""),
+			PtrToVal: "",
+			PtrToPtr: nil,
+		},
+		err: nil,
+	}
+
+	test9 := Test[int, int]{
+		name: "nil or zero value",
+		in: args[int, int]{
+			src:  Field1[int]{},
+			dest: &Field2[int]{},
+		},
+		want: &Field2[int]{
+			ValToVal: 0,
+			ValToPtr: xgo.ToPtr(0),
+			PtrToVal: 0,
+			PtrToPtr: nil,
+		},
+		err: nil,
+	}
+
+	test(t, test1)
+	test(t, test2)
+	test(t, test3)
+	test(t, test4)
+	test(t, test5)
+	test(t, test6)
+	test(t, test7)
+	test(t, test8)
+	test(t, test9)
 }

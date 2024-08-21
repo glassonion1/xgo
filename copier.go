@@ -171,6 +171,14 @@ func convert(src, dst reflect.Value) (bool, error) {
 			dst.Set(src.Elem().Convert(dst.Type()))
 			return true, nil
 		}
+		if dst.Type().Kind() == reflect.Ptr {
+			if src.Type().Elem().ConvertibleTo(dst.Type().Elem()) {
+				rv := reflect.New(dst.Type().Elem())
+				rv.Elem().Set(src.Elem().Convert(dst.Type().Elem()))
+				dst.Set(rv)
+				return true, nil
+			}
+		}
 	}
 
 	// from non pointer type to pointer type

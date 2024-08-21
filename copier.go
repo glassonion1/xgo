@@ -166,6 +166,7 @@ func convert(src, dst reflect.Value) (bool, error) {
 		if src.IsNil() {
 			return true, nil
 		}
+
 		if src.Type().Elem().ConvertibleTo(dst.Type()) {
 			dst.Set(src.Elem().Convert(dst.Type()))
 			return true, nil
@@ -219,11 +220,11 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 		// time.Time -> int64
 		switch dst.Interface().(type) {
 		case int64:
-			dst.Set(reflect.ValueOf(t.Unix()))
+			dst.Set(reflect.ValueOf(t.UnixNano()))
 			return true, nil
 		case *int64:
 			rv := reflect.New(dst.Type().Elem())
-			rv.Elem().Set(reflect.ValueOf(t.Unix()))
+			rv.Elem().Set(reflect.ValueOf(t.UnixNano()))
 			dst.Set(rv)
 			return true, nil
 		}
@@ -235,11 +236,11 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 		// *time.Time -> int64 or *int64
 		switch dst.Interface().(type) {
 		case int64:
-			dst.Set(reflect.ValueOf(t.Unix()))
+			dst.Set(reflect.ValueOf(t.UnixNano()))
 			return true, nil
 		case *int64:
 			rv := reflect.New(dst.Type().Elem())
-			rv.Elem().Set(reflect.ValueOf(t.Unix()))
+			rv.Elem().Set(reflect.ValueOf(t.UnixNano()))
 			dst.Set(rv)
 			return true, nil
 		}
@@ -248,11 +249,11 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 		// int64 -> time.Time or *time.Time
 		switch dst.Interface().(type) {
 		case time.Time:
-			dst.Set(reflect.ValueOf(time.Unix(t, 0)))
+			dst.Set(reflect.ValueOf(time.Unix(0, t)))
 			return true, nil
 		case *time.Time:
 			rv := reflect.New(dst.Type().Elem())
-			rv.Elem().Set(reflect.ValueOf(time.Unix(t, 0)))
+			rv.Elem().Set(reflect.ValueOf(time.Unix(0, t)))
 			dst.Set(rv)
 			return true, nil
 		}
@@ -264,11 +265,11 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 		// *int64 -> time.Time or *time.Time
 		switch dst.Interface().(type) {
 		case time.Time:
-			reflect.Indirect(dst).Set(reflect.ValueOf(time.Unix(*t, 0)))
+			reflect.Indirect(dst).Set(reflect.ValueOf(time.Unix(0, *t)))
 			return true, nil
 		case *time.Time:
 			rv := reflect.New(dst.Type().Elem())
-			rv.Elem().Set(reflect.ValueOf(time.Unix(*t, 0)))
+			rv.Elem().Set(reflect.ValueOf(time.Unix(0, *t)))
 			dst.Set(rv)
 			return true, nil
 		}

@@ -195,9 +195,6 @@ func TestDeepCopy(t *testing.T) {
 			if tt.err == nil && err != nil {
 				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
 			}
-			if tt.err != nil && err == nil {
-				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
-			}
 			if tt.err != nil && err != tt.err {
 				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
 			}
@@ -239,8 +236,9 @@ func TestDeepCopy_time(t *testing.T) {
 		dest interface{}
 	}
 
-	dt := time.Now()
-	now := time.Unix(dt.Unix(), 0)
+	//dt := time.Now()
+	//now := time.Unix(dt.Unix(), 0)
+	now := time.Now()
 
 	tests := []struct {
 		name string
@@ -275,10 +273,10 @@ func TestDeepCopy_time(t *testing.T) {
 				dest: &ModelD{},
 			},
 			want: &ModelD{
-				CreatedAt:  now.Unix(),
-				UpdatedAt:  xgo.ToPtr(now.Unix()),
-				DeletedAt:  now.Unix(),
-				ReplacedAt: xgo.ToPtr(now.Unix()),
+				CreatedAt:  now.UnixNano(),
+				UpdatedAt:  xgo.ToPtr(now.UnixNano()),
+				DeletedAt:  now.UnixNano(),
+				ReplacedAt: xgo.ToPtr(now.UnixNano()),
 			},
 			err: nil,
 		},
@@ -286,10 +284,10 @@ func TestDeepCopy_time(t *testing.T) {
 			name: "int64 to time.Time",
 			in: args{
 				src: ModelD{
-					CreatedAt:  now.Unix(),
-					UpdatedAt:  xgo.ToPtr(now.Unix()),
-					DeletedAt:  now.Unix(),
-					ReplacedAt: xgo.ToPtr(now.Unix()),
+					CreatedAt:  now.UnixNano(),
+					UpdatedAt:  xgo.ToPtr(now.UnixNano()),
+					DeletedAt:  now.UnixNano(),
+					ReplacedAt: xgo.ToPtr(now.UnixNano()),
 				},
 				dest: &ModelC{},
 			},
@@ -311,9 +309,6 @@ func TestDeepCopy_time(t *testing.T) {
 			got := tt.in.dest
 			if tt.err == nil && err != nil {
 				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
-			}
-			if tt.err != nil && err == nil {
-				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
 			}
 			if tt.err != nil && err != tt.err {
 				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
@@ -362,9 +357,6 @@ func TestDeepCopy_private(t *testing.T) {
 			got := tt.in.dest
 			if tt.err == nil && err != nil {
 				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
-			}
-			if tt.err != nil && err == nil {
-				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
 			}
 			if tt.err != nil && err != tt.err {
 				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
@@ -447,14 +439,11 @@ func TestDeepCopy_slice(t *testing.T) {
 			if tt.err == nil && err != nil {
 				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
 			}
-			if tt.err != nil && err == nil {
-				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
-			}
 			if tt.err != nil && err != tt.err {
 				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
 			}
-			if ok := reflect.DeepEqual(tt.want, got); !ok {
-				t.Errorf("testing %s mismatch (-want +got):\n%v\n%v", tt.name, tt.want, got)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
 			}
 		})
 	}
@@ -563,14 +552,11 @@ func TestDeepCopy_slice2(t *testing.T) {
 			if tt.err == nil && err != nil {
 				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
 			}
-			if tt.err != nil && err == nil {
-				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
-			}
 			if tt.err != nil && err != tt.err {
 				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
 			}
-			if ok := reflect.DeepEqual(tt.want, got); !ok {
-				t.Errorf("testing %s mismatch (-want +got):\n%v\n%v", tt.name, tt.want, got)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
 			}
 		})
 	}
@@ -579,8 +565,6 @@ func TestDeepCopy_slice2(t *testing.T) {
 func TestDeepCopy_ptr_slice(t *testing.T) {
 	type Foo string
 	type Bar string
-	type FooNum int
-	type BarNum int
 
 	type Example1 struct {
 		StructToStruct []Foo
@@ -650,14 +634,11 @@ func TestDeepCopy_ptr_slice(t *testing.T) {
 			if tt.err == nil && err != nil {
 				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
 			}
-			if tt.err != nil && err == nil {
-				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
-			}
 			if tt.err != nil && err != tt.err {
 				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
 			}
-			if ok := reflect.DeepEqual(tt.want, got); !ok {
-				t.Errorf("testing %s mismatch (-want +got):\n%v\n%v", tt.name, tt.want, got)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
 			}
 		})
 	}
@@ -666,20 +647,18 @@ func TestDeepCopy_ptr_slice(t *testing.T) {
 func TestDeepCopy_customtype(t *testing.T) {
 	type Foo string
 	type Bar string
-	type FooNum int
-	type BarNum int
 
 	type Example1 struct {
-		StructToStruct Foo
-		StructToPtr    Foo
-		PtrToStruct    *Foo
-		PtrToPtr       *Foo
+		StrToStr Foo
+		StrToPtr Foo
+		PtrToStr *Foo
+		PtrToPtr *Foo
 	}
 	type Example2 struct {
-		StructToStruct Bar
-		StructToPtr    *Bar
-		PtrToStruct    Bar
-		PtrToPtr       *Bar
+		StrToStr Bar
+		StrToPtr *Bar
+		PtrToStr Bar
+		PtrToPtr *Bar
 	}
 
 	type args struct {
@@ -697,18 +676,18 @@ func TestDeepCopy_customtype(t *testing.T) {
 			name: "custom type",
 			in: args{
 				src: Example1{
-					StructToStruct: "test1",
-					StructToPtr:    "test2",
-					PtrToStruct:    xgo.ToPtr(Foo("test3")),
-					PtrToPtr:       xgo.ToPtr(Foo("test4")),
+					StrToStr: "test1",
+					StrToPtr: "test2",
+					PtrToStr: xgo.ToPtr(Foo("test3")),
+					PtrToPtr: xgo.ToPtr(Foo("test4")),
 				},
 				dest: &Example2{},
 			},
 			want: &Example2{
-				StructToStruct: "test1",
-				StructToPtr:    xgo.ToPtr(Bar("test2")),
-				PtrToStruct:    "test3",
-				PtrToPtr:       xgo.ToPtr(Bar("test4")),
+				StrToStr: "test1",
+				StrToPtr: xgo.ToPtr(Bar("test2")),
+				PtrToStr: "test3",
+				PtrToPtr: xgo.ToPtr(Bar("test4")),
 			},
 			err: nil,
 		},
@@ -719,10 +698,10 @@ func TestDeepCopy_customtype(t *testing.T) {
 				dest: &Example2{},
 			},
 			want: &Example2{
-				StructToStruct: "",
-				StructToPtr:    xgo.ToPtr(Bar("")),
-				PtrToStruct:    "",
-				PtrToPtr:       nil,
+				StrToStr: "",
+				StrToPtr: xgo.ToPtr(Bar("")),
+				PtrToStr: "",
+				PtrToPtr: nil,
 			},
 			err: nil,
 		},
@@ -737,15 +716,153 @@ func TestDeepCopy_customtype(t *testing.T) {
 			if tt.err == nil && err != nil {
 				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
 			}
-			if tt.err != nil && err == nil {
-				t.Errorf("testing %s: should be error for %#v but not:", tt.name, tt.in)
+			if tt.err != nil && err != tt.err {
+				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
+			}
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
+			}
+		})
+	}
+}
+
+func TestDeepCopy_number(t *testing.T) {
+	/*
+		type NumField1[T any] struct {
+			NumToNum T
+			NumToPtr T
+			PtrToNum *T
+			PtrToPtr *T
+		}
+		type NumField2[S any] struct {
+			NumToNum S
+			NumToPtr *S
+			PtrToNum S
+			PtrToPtr *S
+		}
+
+		type Example1 struct {
+			IntToInt     NumField1[int]
+			Int32ToInt64 NumField1[int32]
+		}
+
+		type Example2 struct {
+			IntToInt     NumField2[int]
+			Int32ToInt64 NumField2[int64]
+		}
+
+		type args[T, S any] struct {
+			src  NumField1[T]
+			dest *NumField2[S]
+		}
+
+		type Test[T, S any] struct {
+			name string
+			in   args[T, S]
+			want *NumField2[S]
+			err  error
+		}
+	*/
+	test1 := Test[int, int]{
+		name: "int to int",
+		in: args[int, int]{
+			src: NumField1[int]{
+				NumToNum: 1000,
+				NumToPtr: 2000,
+				PtrToNum: xgo.ToPtr(3000),
+				PtrToPtr: xgo.ToPtr(4000),
+			},
+			dest: &NumField2[int]{},
+		},
+		want: &NumField2[int]{
+			NumToNum: 1000,
+			NumToPtr: xgo.ToPtr(2000),
+			PtrToNum: 3000,
+			PtrToPtr: xgo.ToPtr(4000),
+		},
+		err: nil,
+	}
+
+	test2 := Test[int32, int64]{
+		name: "int to int",
+		in: args[int32, int64]{
+			src: NumField1[int32]{
+				NumToNum: 1000,
+				NumToPtr: 2000,
+				PtrToNum: xgo.ToPtr(int32(3000)),
+				//PtrToPtr: xgo.ToPtr(int32(4000)),
+			},
+			dest: &NumField2[int64]{},
+		},
+		want: &NumField2[int64]{
+			NumToNum: 1000,
+			NumToPtr: xgo.ToPtr(int64(2000)),
+			PtrToNum: int64(3000),
+			//PtrToPtr: xgo.ToPtr(int64(4000)),
+		},
+		err: nil,
+	}
+
+	test(t, test1)
+	test(t, test2)
+
+	/*
+		tt := test1
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := xgo.DeepCopy(tt.in.src, tt.in.dest)
+			got := tt.in.dest
+			if tt.err == nil && err != nil {
+				t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
 			}
 			if tt.err != nil && err != tt.err {
 				t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
 			}
-			if ok := reflect.DeepEqual(tt.want, got); !ok {
-				t.Errorf("testing %s mismatch (-want +got):\n%v\n%v", tt.name, tt.want, got)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
 			}
-		})
-	}
+		})*/
+
+}
+
+type NumField1[T any] struct {
+	NumToNum T
+	NumToPtr T
+	PtrToNum *T
+	PtrToPtr *T
+}
+type NumField2[S any] struct {
+	NumToNum S
+	NumToPtr *S
+	PtrToNum S
+	PtrToPtr *S
+}
+
+type args[T, S any] struct {
+	src  NumField1[T]
+	dest *NumField2[S]
+}
+
+type Test[T, S any] struct {
+	name string
+	in   args[T, S]
+	want *NumField2[S]
+	err  error
+}
+
+func test[T, S any](t *testing.T, tt Test[T, S]) {
+	t.Run(tt.name, func(t *testing.T) {
+		t.Parallel()
+		err := xgo.DeepCopy(tt.in.src, tt.in.dest)
+		got := tt.in.dest
+		if tt.err == nil && err != nil {
+			t.Errorf("testing %s: should not be error for %#v but: %v", tt.name, tt.in, err)
+		}
+		if tt.err != nil && err != tt.err {
+			t.Errorf("testing %s: should be error of %v but got: %v", tt.name, tt.err, err)
+		}
+		if diff := cmp.Diff(tt.want, got); diff != "" {
+			t.Errorf("testing %s mismatch (-want +got):\n%s\n", tt.name, diff)
+		}
+	})
 }

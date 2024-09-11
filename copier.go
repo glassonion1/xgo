@@ -223,6 +223,8 @@ func copySlice(src, dst reflect.Value) error {
 }
 
 func setTimeField(src, dst reflect.Value) (bool, error) {
+	const format = "2006-01-02T15:04:05Z07:00"
+
 	switch t := src.Interface().(type) {
 	case time.Time:
 		// time.Time -> int64
@@ -233,6 +235,14 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 		case *int64:
 			rv := reflect.New(dst.Type().Elem())
 			rv.Elem().Set(reflect.ValueOf(t.UnixNano()))
+			dst.Set(rv)
+			return true, nil
+		case string:
+			dst.Set(reflect.ValueOf(t.Format(format)))
+			return true, nil
+		case *string:
+			rv := reflect.New(dst.Type().Elem())
+			rv.Elem().Set(reflect.ValueOf(t.Format(format)))
 			dst.Set(rv)
 			return true, nil
 		}
@@ -249,6 +259,14 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 		case *int64:
 			rv := reflect.New(dst.Type().Elem())
 			rv.Elem().Set(reflect.ValueOf(t.UnixNano()))
+			dst.Set(rv)
+			return true, nil
+		case string:
+			dst.Set(reflect.ValueOf(t.Format(format)))
+			return true, nil
+		case *string:
+			rv := reflect.New(dst.Type().Elem())
+			rv.Elem().Set(reflect.ValueOf(t.Format(format)))
 			dst.Set(rv)
 			return true, nil
 		}
@@ -278,6 +296,43 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 		case *time.Time:
 			rv := reflect.New(dst.Type().Elem())
 			rv.Elem().Set(reflect.ValueOf(time.Unix(0, *t)))
+			dst.Set(rv)
+			return true, nil
+		}
+
+	case string:
+		// string -> time.Time or *time.Time
+		v, err := time.Parse(t, format)
+		if err != nil {
+			return true, nil
+		}
+		switch dst.Interface().(type) {
+		case time.Time:
+			dst.Set(reflect.ValueOf(v))
+			return true, nil
+		case *time.Time:
+			rv := reflect.New(dst.Type().Elem())
+			rv.Elem().Set(reflect.ValueOf(v))
+			dst.Set(rv)
+			return true, nil
+		}
+
+	case *string:
+		if t == nil {
+			return true, nil
+		}
+		// *string -> time.Time or *time.Time
+		v, err := time.Parse(*t, format)
+		if err != nil {
+			return true, nil
+		}
+		switch dst.Interface().(type) {
+		case time.Time:
+			reflect.Indirect(dst).Set(reflect.ValueOf(v))
+			return true, nil
+		case *time.Time:
+			rv := reflect.New(dst.Type().Elem())
+			rv.Elem().Set(reflect.ValueOf(v))
 			dst.Set(rv)
 			return true, nil
 		}

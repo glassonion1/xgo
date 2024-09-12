@@ -223,7 +223,7 @@ func copySlice(src, dst reflect.Value) error {
 }
 
 func setTimeField(src, dst reflect.Value) (bool, error) {
-	const format = "2006-01-02T15:04:05Z07:00"
+	const format = time.RFC3339Nano
 
 	switch t := src.Interface().(type) {
 	case time.Time:
@@ -302,10 +302,11 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 
 	case string:
 		// string -> time.Time or *time.Time
-		v, err := time.Parse(t, format)
+		v, err := time.Parse(format, t)
 		if err != nil {
 			return true, nil
 		}
+
 		switch dst.Interface().(type) {
 		case time.Time:
 			dst.Set(reflect.ValueOf(v))
@@ -322,7 +323,7 @@ func setTimeField(src, dst reflect.Value) (bool, error) {
 			return true, nil
 		}
 		// *string -> time.Time or *time.Time
-		v, err := time.Parse(*t, format)
+		v, err := time.Parse(format, *t)
 		if err != nil {
 			return true, nil
 		}

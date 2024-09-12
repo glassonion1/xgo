@@ -231,14 +231,20 @@ func TestDeepCopy_time(t *testing.T) {
 		ReplacedAt *int64
 	}
 
+	type ModelE struct {
+		CreatedAt  string
+		UpdatedAt  *string
+		DeletedAt  string
+		ReplacedAt *string
+	}
+
 	type args struct {
 		src  interface{}
 		dest interface{}
 	}
 
-	//dt := time.Now()
-	//now := time.Unix(dt.Unix(), 0)
 	now := time.Now()
+	const format = time.RFC3339Nano
 
 	tests := []struct {
 		name string
@@ -288,6 +294,44 @@ func TestDeepCopy_time(t *testing.T) {
 					UpdatedAt:  xgo.ToPtr(now.UnixNano()),
 					DeletedAt:  now.UnixNano(),
 					ReplacedAt: xgo.ToPtr(now.UnixNano()),
+				},
+				dest: &ModelC{},
+			},
+			want: &ModelC{
+				CreatedAt:  now,
+				UpdatedAt:  now,
+				DeletedAt:  &now,
+				ReplacedAt: &now,
+			},
+			err: nil,
+		},
+		{
+			name: "time.Time to string",
+			in: args{
+				src: ModelC{
+					CreatedAt:  now,
+					UpdatedAt:  now,
+					DeletedAt:  &now,
+					ReplacedAt: &now,
+				},
+				dest: &ModelE{},
+			},
+			want: &ModelE{
+				CreatedAt:  now.Format(format),
+				UpdatedAt:  xgo.ToPtr(now.Format(format)),
+				DeletedAt:  now.Format(format),
+				ReplacedAt: xgo.ToPtr(now.Format(format)),
+			},
+			err: nil,
+		},
+		{
+			name: "string to time.Time",
+			in: args{
+				src: ModelE{
+					CreatedAt:  now.Format(format),
+					UpdatedAt:  xgo.ToPtr(now.Format(format)),
+					DeletedAt:  now.Format(format),
+					ReplacedAt: xgo.ToPtr(now.Format(format)),
 				},
 				dest: &ModelC{},
 			},
